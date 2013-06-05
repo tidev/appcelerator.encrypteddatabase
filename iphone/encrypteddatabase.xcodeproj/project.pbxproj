@@ -1,0 +1,581 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		24416B8111C4CA220047AFDD /* Build & Test */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 24416B8A11C4CA520047AFDD /* Build configuration list for PBXAggregateTarget "Build & Test" */;
+			buildPhases = (
+				24416B8011C4CA220047AFDD /* ShellScript */,
+			);
+			dependencies = (
+				24416B8511C4CA280047AFDD /* PBXTargetDependency */,
+			);
+			name = "Build & Test";
+			productName = "Build & test";
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		24DD6CF91134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DD6CF71134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h */; };
+		24DD6CFA1134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DD6CF81134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m */; };
+		24DE9E1111C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h */; };
+		24DE9E1211C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DE9E1011C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.m */; };
+		A06D6E9E175EA4330051B537 /* ThirdpartyNS.h in Headers */ = {isa = PBXBuildFile; fileRef = A06D6E9D175EA4330051B537 /* ThirdpartyNS.h */; };
+		A06D6EA8175EA6B20051B537 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A06D6E95175EA3B10051B537 /* libcrypto.a */; };
+		A06D6EA9175EA6B20051B537 /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A06D6E9C175EA3BD0051B537 /* libsqlcipher.a */; };
+		A0CCE86A175EA0BE005D04CF /* EncPlausibleDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE859175EA0BE005D04CF /* EncPlausibleDatabase.h */; };
+		A0CCE86B175EA0BE005D04CF /* EncPlausibleDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A0CCE85A175EA0BE005D04CF /* EncPlausibleDatabase.m */; };
+		A0CCE86C175EA0BE005D04CF /* EncPLDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE85B175EA0BE005D04CF /* EncPLDatabase.h */; };
+		A0CCE86D175EA0BE005D04CF /* EncPLPreparedStatement.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE85C175EA0BE005D04CF /* EncPLPreparedStatement.h */; };
+		A0CCE86E175EA0BE005D04CF /* EncPLResultSet.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE85D175EA0BE005D04CF /* EncPLResultSet.h */; };
+		A0CCE86F175EA0BE005D04CF /* EncPLSqliteDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE85E175EA0BE005D04CF /* EncPLSqliteDatabase.h */; };
+		A0CCE870175EA0BE005D04CF /* EncPLSqliteDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A0CCE85F175EA0BE005D04CF /* EncPLSqliteDatabase.m */; };
+		A0CCE871175EA0BE005D04CF /* EncPLSqlitePreparedStatement.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE860175EA0BE005D04CF /* EncPLSqlitePreparedStatement.h */; };
+		A0CCE872175EA0BE005D04CF /* EncPLSqlitePreparedStatement.m in Sources */ = {isa = PBXBuildFile; fileRef = A0CCE861175EA0BE005D04CF /* EncPLSqlitePreparedStatement.m */; };
+		A0CCE873175EA0BE005D04CF /* EncPLSqliteResultSet.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE862175EA0BE005D04CF /* EncPLSqliteResultSet.h */; };
+		A0CCE874175EA0BE005D04CF /* EncPLSqliteResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = A0CCE863175EA0BE005D04CF /* EncPLSqliteResultSet.m */; };
+		A0CCE875175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE864175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h */; };
+		A0CCE876175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = A0CCE865175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.m */; };
+		A0CCE877175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = A0CCE866175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.h */; };
+		A0CCE878175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = A0CCE867175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.m */; };
+		AA747D9F0F9514B9006C5449 /* AppceleratorEncrypteddatabase_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* AppceleratorEncrypteddatabase_Prefix.pch */; };
+		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		24416B8411C4CA280047AFDD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = encrypteddatabase;
+		};
+		A06D6E94175EA3B10051B537 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A06D6E90175EA3B00051B537 /* openssl.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 9069D28C0FCE659A0042E34C;
+			remoteInfo = crypto;
+		};
+		A06D6E9B175EA3BD0051B537 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A06D6E96175EA3BC0051B537 /* sqlcipher.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC046055464E500DB518D;
+			remoteInfo = sqlcipher;
+		};
+		A06D6EA1175EA6AD0051B537 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A06D6E96175EA3BC0051B537 /* sqlcipher.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = sqlcipher;
+		};
+		A06D6EA3175EA6AD0051B537 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A06D6E90175EA3B00051B537 /* openssl.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9069D28B0FCE659A0042E34C;
+			remoteInfo = crypto;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		24DD6CF71134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppceleratorEncrypteddatabaseModule.h; path = Classes/AppceleratorEncrypteddatabaseModule.h; sourceTree = "<group>"; };
+		24DD6CF81134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppceleratorEncrypteddatabaseModule.m; path = Classes/AppceleratorEncrypteddatabaseModule.m; sourceTree = "<group>"; };
+		24DD6D1B1134B66800162E58 /* titanium.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = titanium.xcconfig; sourceTree = "<group>"; };
+		24DE9E0F11C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppceleratorEncrypteddatabaseModuleAssets.h; path = Classes/AppceleratorEncrypteddatabaseModuleAssets.h; sourceTree = "<group>"; };
+		24DE9E1011C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppceleratorEncrypteddatabaseModuleAssets.m; path = Classes/AppceleratorEncrypteddatabaseModuleAssets.m; sourceTree = "<group>"; };
+		A06D6E90175EA3B00051B537 /* openssl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openssl.xcodeproj; path = "openssl-xcode/openssl.xcodeproj"; sourceTree = "<group>"; };
+		A06D6E96175EA3BC0051B537 /* sqlcipher.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sqlcipher.xcodeproj; path = sqlcipher/sqlcipher.xcodeproj; sourceTree = "<group>"; };
+		A06D6E9D175EA4330051B537 /* ThirdpartyNS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ThirdpartyNS.h; path = Classes/ThirdpartyNS.h; sourceTree = "<group>"; };
+		A0CCE859175EA0BE005D04CF /* EncPlausibleDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPlausibleDatabase.h; sourceTree = "<group>"; };
+		A0CCE85A175EA0BE005D04CF /* EncPlausibleDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncPlausibleDatabase.m; sourceTree = "<group>"; };
+		A0CCE85B175EA0BE005D04CF /* EncPLDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPLDatabase.h; sourceTree = "<group>"; };
+		A0CCE85C175EA0BE005D04CF /* EncPLPreparedStatement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPLPreparedStatement.h; sourceTree = "<group>"; };
+		A0CCE85D175EA0BE005D04CF /* EncPLResultSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPLResultSet.h; sourceTree = "<group>"; };
+		A0CCE85E175EA0BE005D04CF /* EncPLSqliteDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPLSqliteDatabase.h; sourceTree = "<group>"; };
+		A0CCE85F175EA0BE005D04CF /* EncPLSqliteDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncPLSqliteDatabase.m; sourceTree = "<group>"; };
+		A0CCE860175EA0BE005D04CF /* EncPLSqlitePreparedStatement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPLSqlitePreparedStatement.h; sourceTree = "<group>"; };
+		A0CCE861175EA0BE005D04CF /* EncPLSqlitePreparedStatement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncPLSqlitePreparedStatement.m; sourceTree = "<group>"; };
+		A0CCE862175EA0BE005D04CF /* EncPLSqliteResultSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncPLSqliteResultSet.h; sourceTree = "<group>"; };
+		A0CCE863175EA0BE005D04CF /* EncPLSqliteResultSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncPLSqliteResultSet.m; sourceTree = "<group>"; };
+		A0CCE864175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppceleratorEncrypteddatabaseDBProxy.h; path = Classes/AppceleratorEncrypteddatabaseDBProxy.h; sourceTree = "<group>"; };
+		A0CCE865175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppceleratorEncrypteddatabaseDBProxy.m; path = Classes/AppceleratorEncrypteddatabaseDBProxy.m; sourceTree = "<group>"; };
+		A0CCE866175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppceleratorEncrypteddatabaseResultSetProxy.h; path = Classes/AppceleratorEncrypteddatabaseResultSetProxy.h; sourceTree = "<group>"; };
+		A0CCE867175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppceleratorEncrypteddatabaseResultSetProxy.m; path = Classes/AppceleratorEncrypteddatabaseResultSetProxy.m; sourceTree = "<group>"; };
+		AA747D9E0F9514B9006C5449 /* AppceleratorEncrypteddatabase_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppceleratorEncrypteddatabase_Prefix.pch; sourceTree = SOURCE_ROOT; };
+		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		D2AAC07E0554694100DB518D /* libAppceleratorEncrypteddatabase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAppceleratorEncrypteddatabase.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D2AAC07C0554694100DB518D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A06D6EA8175EA6B20051B537 /* libcrypto.a in Frameworks */,
+				A06D6EA9175EA6B20051B537 /* libsqlcipher.a in Frameworks */,
+				AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		034768DFFF38A50411DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC07E0554694100DB518D /* libAppceleratorEncrypteddatabase.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* encrypteddatabase */ = {
+			isa = PBXGroup;
+			children = (
+				A06D6E96175EA3BC0051B537 /* sqlcipher.xcodeproj */,
+				A06D6E90175EA3B00051B537 /* openssl.xcodeproj */,
+				08FB77AEFE84172EC02AAC07 /* Classes */,
+				32C88DFF0371C24200C91783 /* Other Sources */,
+				0867D69AFE84028FC02AAC07 /* Frameworks */,
+				034768DFFF38A50411DB9C8B /* Products */,
+			);
+			name = encrypteddatabase;
+			sourceTree = "<group>";
+		};
+		0867D69AFE84028FC02AAC07 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AACBBE490F95108600F1A2B1 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		08FB77AEFE84172EC02AAC07 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				A0CCE858175EA0BE005D04CF /* PlausibleDatabase */,
+				A06D6E9D175EA4330051B537 /* ThirdpartyNS.h */,
+				A0CCE864175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h */,
+				A0CCE865175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.m */,
+				A0CCE866175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.h */,
+				A0CCE867175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.m */,
+				24DE9E0F11C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h */,
+				24DE9E1011C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.m */,
+				24DD6CF71134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h */,
+				24DD6CF81134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		32C88DFF0371C24200C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				AA747D9E0F9514B9006C5449 /* AppceleratorEncrypteddatabase_Prefix.pch */,
+				24DD6D1B1134B66800162E58 /* titanium.xcconfig */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		A06D6E91175EA3B00051B537 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A06D6E95175EA3B10051B537 /* libcrypto.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A06D6E97175EA3BC0051B537 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A06D6E9C175EA3BD0051B537 /* libsqlcipher.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A0CCE858175EA0BE005D04CF /* PlausibleDatabase */ = {
+			isa = PBXGroup;
+			children = (
+				A0CCE859175EA0BE005D04CF /* EncPlausibleDatabase.h */,
+				A0CCE85A175EA0BE005D04CF /* EncPlausibleDatabase.m */,
+				A0CCE85B175EA0BE005D04CF /* EncPLDatabase.h */,
+				A0CCE85C175EA0BE005D04CF /* EncPLPreparedStatement.h */,
+				A0CCE85D175EA0BE005D04CF /* EncPLResultSet.h */,
+				A0CCE85E175EA0BE005D04CF /* EncPLSqliteDatabase.h */,
+				A0CCE85F175EA0BE005D04CF /* EncPLSqliteDatabase.m */,
+				A0CCE860175EA0BE005D04CF /* EncPLSqlitePreparedStatement.h */,
+				A0CCE861175EA0BE005D04CF /* EncPLSqlitePreparedStatement.m */,
+				A0CCE862175EA0BE005D04CF /* EncPLSqliteResultSet.h */,
+				A0CCE863175EA0BE005D04CF /* EncPLSqliteResultSet.m */,
+			);
+			name = PlausibleDatabase;
+			path = Classes/PlausibleDatabase;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D2AAC07A0554694100DB518D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA747D9F0F9514B9006C5449 /* AppceleratorEncrypteddatabase_Prefix.pch in Headers */,
+				24DD6CF91134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h in Headers */,
+				24DE9E1111C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h in Headers */,
+				A0CCE86A175EA0BE005D04CF /* EncPlausibleDatabase.h in Headers */,
+				A0CCE86C175EA0BE005D04CF /* EncPLDatabase.h in Headers */,
+				A0CCE86D175EA0BE005D04CF /* EncPLPreparedStatement.h in Headers */,
+				A0CCE86E175EA0BE005D04CF /* EncPLResultSet.h in Headers */,
+				A0CCE86F175EA0BE005D04CF /* EncPLSqliteDatabase.h in Headers */,
+				A0CCE871175EA0BE005D04CF /* EncPLSqlitePreparedStatement.h in Headers */,
+				A0CCE873175EA0BE005D04CF /* EncPLSqliteResultSet.h in Headers */,
+				A0CCE875175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h in Headers */,
+				A0CCE877175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.h in Headers */,
+				A06D6E9E175EA4330051B537 /* ThirdpartyNS.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D2AAC07D0554694100DB518D /* encrypteddatabase */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB921E08733DC00010E9CD /* Build configuration list for PBXNativeTarget "encrypteddatabase" */;
+			buildPhases = (
+				D2AAC07A0554694100DB518D /* Headers */,
+				D2AAC07B0554694100DB518D /* Sources */,
+				D2AAC07C0554694100DB518D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A06D6EA2175EA6AD0051B537 /* PBXTargetDependency */,
+				A06D6EA4175EA6AD0051B537 /* PBXTargetDependency */,
+			);
+			name = encrypteddatabase;
+			productName = encrypteddatabase;
+			productReference = D2AAC07E0554694100DB518D /* libAppceleratorEncrypteddatabase.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = 1DEB922208733DC00010E9CD /* Build configuration list for PBXProject "encrypteddatabase" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 0867D691FE84028FC02AAC07 /* encrypteddatabase */;
+			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = A06D6E91175EA3B00051B537 /* Products */;
+					ProjectRef = A06D6E90175EA3B00051B537 /* openssl.xcodeproj */;
+				},
+				{
+					ProductGroup = A06D6E97175EA3BC0051B537 /* Products */;
+					ProjectRef = A06D6E96175EA3BC0051B537 /* sqlcipher.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				D2AAC07D0554694100DB518D /* encrypteddatabase */,
+				24416B8111C4CA220047AFDD /* Build & Test */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		A06D6E95175EA3B10051B537 /* libcrypto.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcrypto.a;
+			remoteRef = A06D6E94175EA3B10051B537 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A06D6E9C175EA3BD0051B537 /* libsqlcipher.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libsqlcipher.a;
+			remoteRef = A06D6E9B175EA3BD0051B537 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		24416B8011C4CA220047AFDD /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here\n\npython \"${TITANIUM_SDK}/titanium.py\" run --dir=\"${PROJECT_DIR}\"\nexit $?\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D2AAC07B0554694100DB518D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24DD6CFA1134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m in Sources */,
+				24DE9E1211C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.m in Sources */,
+				A0CCE86B175EA0BE005D04CF /* EncPlausibleDatabase.m in Sources */,
+				A0CCE870175EA0BE005D04CF /* EncPLSqliteDatabase.m in Sources */,
+				A0CCE872175EA0BE005D04CF /* EncPLSqlitePreparedStatement.m in Sources */,
+				A0CCE874175EA0BE005D04CF /* EncPLSqliteResultSet.m in Sources */,
+				A0CCE876175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.m in Sources */,
+				A0CCE878175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		24416B8511C4CA280047AFDD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC07D0554694100DB518D /* encrypteddatabase */;
+			targetProxy = 24416B8411C4CA280047AFDD /* PBXContainerItemProxy */;
+		};
+		A06D6EA2175EA6AD0051B537 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = sqlcipher;
+			targetProxy = A06D6EA1175EA6AD0051B537 /* PBXContainerItemProxy */;
+		};
+		A06D6EA4175EA6AD0051B537 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = crypto;
+			targetProxy = A06D6EA3175EA6AD0051B537 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB921F08733DC00010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 24DD6D1B1134B66800162E58 /* titanium.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DSTROOT = /tmp/AppceleratorEncrypteddatabase.dst;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = AppceleratorEncrypteddatabase_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = "";
+				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				GCC_WARN_MISSING_PARENTHESES = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(TITANIUM_BASE_SDK)",
+					"$(TITANIUM_BASE_SDK2)",
+					sqlcipher,
+				);
+				INSTALL_PATH = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = (
+					"-DDEBUG",
+					"-DTI_POST_1_2",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = AppceleratorEncrypteddatabase;
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				RUN_CLANG_STATIC_ANALYZER = NO;
+				SDKROOT = iphoneos;
+				USER_HEADER_SEARCH_PATHS = "";
+			};
+			name = Debug;
+		};
+		1DEB922008733DC00010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 24DD6D1B1134B66800162E58 /* titanium.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DSTROOT = /tmp/AppceleratorEncrypteddatabase.dst;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = AppceleratorEncrypteddatabase_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = "";
+				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				GCC_WARN_MISSING_PARENTHESES = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(TITANIUM_BASE_SDK)",
+					"$(TITANIUM_BASE_SDK2)",
+					sqlcipher,
+				);
+				INSTALL_PATH = /usr/local/lib;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = "-DTI_POST_1_2";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = AppceleratorEncrypteddatabase;
+				RUN_CLANG_STATIC_ANALYZER = NO;
+				SDKROOT = iphoneos;
+				USER_HEADER_SEARCH_PATHS = "";
+			};
+			name = Release;
+		};
+		1DEB922308733DC00010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 24DD6D1B1134B66800162E58 /* titanium.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DSTROOT = /tmp/AppceleratorEncrypteddatabase.dst;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = AppceleratorEncrypteddatabase_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = "";
+				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				GCC_WARN_MISSING_PARENTHESES = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_CFLAGS = (
+					"-DDEBUG",
+					"-DTI_POST_1_2",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = AppceleratorEncrypteddatabase;
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				RUN_CLANG_STATIC_ANALYZER = NO;
+				SDKROOT = iphoneos;
+				USER_HEADER_SEARCH_PATHS = "";
+			};
+			name = Debug;
+		};
+		1DEB922408733DC00010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 24DD6D1B1134B66800162E58 /* titanium.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DSTROOT = /tmp/AppceleratorEncrypteddatabase.dst;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = AppceleratorEncrypteddatabase_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = "";
+				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				GCC_WARN_MISSING_PARENTHESES = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				INSTALL_PATH = /usr/local/lib;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
+				OTHER_CFLAGS = "-DTI_POST_1_2";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = AppceleratorEncrypteddatabase;
+				RUN_CLANG_STATIC_ANALYZER = NO;
+				SDKROOT = iphoneos;
+				USER_HEADER_SEARCH_PATHS = "";
+			};
+			name = Release;
+		};
+		24416B8211C4CA220047AFDD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 24DD6D1B1134B66800162E58 /* titanium.xcconfig */;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "Build & test";
+			};
+			name = Debug;
+		};
+		24416B8311C4CA220047AFDD /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 24DD6D1B1134B66800162E58 /* titanium.xcconfig */;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				PRODUCT_NAME = "Build & test";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB921E08733DC00010E9CD /* Build configuration list for PBXNativeTarget "encrypteddatabase" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB921F08733DC00010E9CD /* Debug */,
+				1DEB922008733DC00010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB922208733DC00010E9CD /* Build configuration list for PBXProject "encrypteddatabase" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB922308733DC00010E9CD /* Debug */,
+				1DEB922408733DC00010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		24416B8A11C4CA520047AFDD /* Build configuration list for PBXAggregateTarget "Build & Test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24416B8211C4CA220047AFDD /* Debug */,
+				24416B8311C4CA220047AFDD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}

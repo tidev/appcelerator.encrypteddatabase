@@ -1,0 +1,2 @@
+Start by opening the XCode project, Choose the XCode Menu, Preferences, Locations tab, and Source Trees screen. Add a variable named 
+OPENSSL_SRC that references the path to the extracted OpenSSL source code.
