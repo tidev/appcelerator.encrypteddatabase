@@ -4,7 +4,7 @@
 #
 version: 1.0.0
 apiversion: 2
-description: Encrypt your SQLite client side databases.
+description: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 author: Dawson Toth
 license: Appcelerator Commercial License
 copyright: Copyright (c) 2013 by Appcelerator, Inc.
@@ -13,6 +13,6 @@ copyright: Copyright (c) 2013 by Appcelerator, Inc.
 # these should not be edited
 name: encrypteddatabase
 moduleid: appcelerator.encrypteddatabase
-guid: 392bac6f-19c6-4c1b-bf29-91c77d92727a
+guid: d1b3740c-ec53-45c6-8454-8748f91da6ad
 platform: android
 minsdk: 3.1.0

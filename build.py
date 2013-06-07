@@ -2,6 +2,15 @@
 import os, sys
 import shutil, glob, platform, subprocess, string
 
+def die(msg):
+    print
+    print "!!!!!!! ERROR !!!!!!!"
+    print msg
+    print "!!!!!!! ERROR !!!!!!!"
+    if os.path.exists('temp.zip'):
+        os.remove('temp.zip')
+    sys.exit(1)
+
 def fork(directory, cmd, quiet=False):
     proc = subprocess.Popen(cmd, shell=True, cwd=directory, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     while proc.poll() == None:
@@ -62,6 +71,8 @@ def main(args):
             packages.append('mobileweb')
 
         if os.path.exists('android'):
+            if not os.path.exists(os.path.join(os.getcwd(), 'android', 'build.properties')):
+                die("*** build.properties file is missing -- copy build.properties.example ***")
             create_module('android', 'ant')
             packages.append('android')
 

@@ -1,0 +1,19 @@
+ToDo Alloy:
+
+Description:
+
+Demonstrates the use of a Encrypted Database adapter with the Titanium Alloy ToDo sample application. The application code
+is identical to the sample application with the exception of using the Encrypted Database adapter.
+
+Prerequisites:
+
+- Requires that the module is setup to use the Encrypted Database library (see index.html in the documentation).
+- If the module is not setup to use the Encrypted Database library, the application will default to the sql database.
+
+Instructions:
+
+1. Build and run the application
+2. Click the "+" button in the upper-right corner of the application
+3. Enter an item and click "Add Item" (repeat)
+4. Click "Cancel" when done adding items
+5. The items you added should be displayed in the list

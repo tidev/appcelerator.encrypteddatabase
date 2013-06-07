@@ -4,7 +4,7 @@
 #
 version: 1.0.0
 apiversion: 2
-description: Encrypt your SQLite client side databases.
+description: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 author: Dawson Toth
 license: Appcelerator Commercial License
 copyright: Copyright (c) 2013 by Appcelerator, Inc.

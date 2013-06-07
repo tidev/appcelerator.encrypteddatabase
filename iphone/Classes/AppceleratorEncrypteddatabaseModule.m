@@ -1,9 +1,9 @@
 /**
- * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
- * Licensed under the terms of the Apache Public License
- * Please see the LICENSE included with this distribution for details.
+ * Appcelerator Titanium Mobile Modules
+ * Copyright (c) 2010-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Proprietary and Confidential - This source code is not for redistribution
  */
+ 
 #import "AppceleratorEncrypteddatabaseModule.h"
 #import "TiBase.h"
 #import "TiHost.h"

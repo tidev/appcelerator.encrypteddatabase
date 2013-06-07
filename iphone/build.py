@@ -7,6 +7,22 @@ import os, subprocess, sys, glob, string
 import zipfile
 from datetime import date
 
+def add_symlinks():
+	if not os.path.islink('assets'):
+		os.symlink('../assets', 'assets')
+	if not os.path.islink('example'):
+		os.symlink('../example', 'example')
+	if not os.path.islink('documentation'):
+		os.symlink('../documentation', 'documentation')
+	if not os.path.islink('LICENSE'):
+		os.symlink('../LICENSE', 'LICENSE')	
+
+def remove_symlinks():
+	os.unlink('assets')
+	os.unlink('example')
+	os.unlink('documentation')
+	os.unlink('LICENSE')
+
 cwd = os.path.abspath(os.path.dirname(sys._getframe(0).f_code.co_filename))
 os.chdir(cwd)
 required_module_keys = ['name','version','moduleid','description','copyright','license','copyright','platform','minsdk']
@@ -76,6 +92,7 @@ def compile_js(manifest,config):
 	except:
 		import simplejson as json
 
+	path = os.path.basename(js_file)
 	compiler = Compiler(cwd, manifest['moduleid'], manifest['name'], 'commonjs')
 	root_asset, module_assets = compiler.compile_module()
 
@@ -208,6 +225,7 @@ def package_module(manifest,mf,config):
 
 
 if __name__ == '__main__':
+	add_symlinks()
 	manifest,mf = validate_manifest()
 	validate_license()
 	config = read_ti_xcconfig()
@@ -219,5 +237,5 @@ if __name__ == '__main__':
 	compile_js(manifest,config)
 	build_module(manifest,config)
 	package_module(manifest,mf,config)
+	remove_symlinks()
 	sys.exit(0)
-

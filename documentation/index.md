@@ -1,7 +1,7 @@
 # Appcelerator Encrypted Database Module
 
 ## Description
-Encrypt your SQLite client side databases. Uses the same API as Ti.Database, so it can be swapped in with only trivial code changes.
+Provides transparent, secure 256-bit AES encryption of SQLite database files.
 
 ## Accessing the Module
 To access this module from JavaScript, you would do the following:
@@ -12,14 +12,17 @@ The EncryptedDatabase variable is a reference to the Module object.
 
 ## Reference
 
-### EncryptedDatabase.password
+This module inherits from _[Titanium.Database][]_, and has the same methods and properties. It also has the following property and methods:
 
+### string EncryptedDatabase.password
 The password to use when opening or installing databases. After setting this, any subsequent calls to "open" or "install" on this module
 will be encrypted. Defaults to the current application's GUID, as defined in the tiapp.xml.
 
-### EncryptedDatabase.setPassword(string val)
+### void EncryptedDatabase.setPassword(string val)
+Synonymous with setting the "password" property to a value.
 
 ### string EncryptedDatabase.getPassword()
+Synonymous with getting the "password" property.
 
 ## Usage
 See example.
@@ -35,3 +38,5 @@ Please direct all questions, feedback, and concerns to [info@appcelerator.com](m
 
 ## License
 Copyright(c) 2010-2013 by Appcelerator, Inc. All Rights Reserved. Please see the LICENSE file included in the distribution for further details.
+
+[Titanium.Database]: http://docs.appcelerator.com/titanium/latest/#!/api/Titanium.Database

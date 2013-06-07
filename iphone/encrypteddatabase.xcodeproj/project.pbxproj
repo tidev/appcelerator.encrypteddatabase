@@ -256,8 +256,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				A06D6EA2175EA6AD0051B537 /* PBXTargetDependency */,
 				A06D6EA4175EA6AD0051B537 /* PBXTargetDependency */,
+				A06D6EA2175EA6AD0051B537 /* PBXTargetDependency */,
 			);
 			name = encrypteddatabase;
 			productName = encrypteddatabase;
