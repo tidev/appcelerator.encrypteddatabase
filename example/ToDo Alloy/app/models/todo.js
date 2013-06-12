@@ -1,6 +1,12 @@
 var moment = require('alloy/moment');
 
-var dbType = require('appcelerator.encrypteddatabase').Database != null ? "enc.db" : "sql";
+// Use encrypteddatabase if the module is included, else use sql.
+try {
+    require('appcelerator.encrypteddatabase');
+    var dbType = "enc.db";
+} catch(e) {
+    var dbType = "sql";
+}
 
 exports.definition = {
 	config: {
