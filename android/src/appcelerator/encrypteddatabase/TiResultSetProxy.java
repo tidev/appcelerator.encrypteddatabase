@@ -13,8 +13,8 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
 
-import android.database.AbstractWindowedCursor;
 import android.database.Cursor;
+import net.sqlcipher.CrossProcessCursorWrapper;
 import net.sqlcipher.SQLException;
 import android.os.Build;
 
@@ -99,13 +99,14 @@ public class TiResultSetProxy extends KrollProxy {
 		boolean fromString = false;
 
 		try {
-			if (rs instanceof AbstractWindowedCursor) {
-				AbstractWindowedCursor cursor = (AbstractWindowedCursor) rs;
-				if (cursor.isFloat(index)) {
+			if (rs instanceof CrossProcessCursorWrapper) {
+				CrossProcessCursorWrapper cursor = (CrossProcessCursorWrapper) rs;
+				int columnType = cursor.getType(index);
+				if (columnType == android.database.Cursor.FIELD_TYPE_FLOAT) {
 					result = cursor.getDouble(index);
-				} else if (cursor.isLong(index)) {
-					result = cursor.getLong(index);
-				} else if (cursor.isNull(index)) {
+				} else if (columnType == android.database.Cursor.FIELD_TYPE_INTEGER) {
+					result = cursor.getInt(index);
+				} else if (columnType == android.database.Cursor.FIELD_TYPE_NULL) {
 					result = null;
 				} else {
 					fromString = true;
@@ -140,7 +141,7 @@ public class TiResultSetProxy extends KrollProxy {
 				}
 				break;
 			case EncrypteddatabaseModule.FIELD_TYPE_INT:
-				if (!(result instanceof Integer) && !(result instanceof Long)) {
+				if (!(result instanceof Integer)) {
 					result = TiConvert.toInt(result);
 				}
 				break;
