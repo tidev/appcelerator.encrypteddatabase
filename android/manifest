@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.0.2
+version: 1.0.3
 apiversion: 2
 description: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 author: Dawson Toth
@@ -15,4 +15,4 @@ name: encrypteddatabase
 moduleid: appcelerator.encrypteddatabase
 guid: d1b3740c-ec53-45c6-8454-8748f91da6ad
 platform: android
-minsdk: 3.1.0
+minsdk: 3.3.0
