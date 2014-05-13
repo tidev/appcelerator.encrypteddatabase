@@ -15,4 +15,4 @@ name: encrypteddatabase
 moduleid: appcelerator.encrypteddatabase
 guid: d1b3740c-ec53-45c6-8454-8748f91da6ad
 platform: iphone
-minsdk: 3.2.2
+minsdk: 3.3.0
