@@ -49,12 +49,12 @@ public class EncrypteddatabaseModule extends KrollModule {
 		super();
 	}
 
-	@Kroll.getProperty
+	@Kroll.getProperty @Kroll.method
 	public String getPassword() {
 		return password == null ? TiApplication.getInstance().getAppGUID() : password;
 	}
 
-	@Kroll.setProperty
+	@Kroll.setProperty @Kroll.method
 	public void setPassword(String value) {
 		password = value;
 	}
