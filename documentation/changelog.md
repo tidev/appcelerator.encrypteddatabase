@@ -1,5 +1,8 @@
 # Change Log
 <pre>
+v1.0.4  Android: exposing setPassword and getPassword as methods [MOD-1765]
+        iOS: no changes
+
 v1.0.3  Android: no changes
         iOS: Changed fieldCount from method to property [MOD-1712]
 
