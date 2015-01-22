@@ -21,11 +21,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		28B46E6317CD07A700672510 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28B46E6217CD07A600672510 /* Security.framework */; };
 		9069D0A30FCE1A4D0042E34C /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 9069D0A20FCE1A4D0042E34C /* sqlite3.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		9069D08E0FCE18790042E34C /* PBXContainerItemProxy */ = {
+		289BE0E7180C4930003E52DA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		28B46E6217CD07A600672510 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		9069D0A20FCE1A4D0042E34C /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libsqlcipher.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsqlcipher.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -44,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				28B46E6317CD07A700672510 /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +56,7 @@
 		08FB7794FE84155DC02AAC07 /* sqlcipher */ = {
 			isa = PBXGroup;
 			children = (
+				28B46E6217CD07A600672510 /* Security.framework */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -107,7 +111,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				9069D08F0FCE18790042E34C /* PBXTargetDependency */,
+				289BE0E8180C4930003E52DA /* PBXTargetDependency */,
 			);
 			name = sqlcipher;
 			productName = sqlcipher;
@@ -156,7 +160,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "./configure --enable-tempstore=yes CC=/usr/bin/gcc CFLAGS=\"-DSQLITE_HAS_CODEC -DSQLITE_TEMP_STORE=2\"\nmake sqlite3.c\nexit 0";
+			shellScript = "./configure --enable-tempstore=yes --with-crypto-lib=commoncrypto CFLAGS=\"-DSQLITE_HAS_CODEC -DSQLITE_TEMP_STORE=2\"\nmake sqlite3.c\nexit 0";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -172,10 +176,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		9069D08F0FCE18790042E34C /* PBXTargetDependency */ = {
+		289BE0E8180C4930003E52DA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9069D08B0FCE185A0042E34C /* amalgamation */;
-			targetProxy = 9069D08E0FCE18790042E34C /* PBXContainerItemProxy */;
+			targetProxy = 289BE0E7180C4930003E52DA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -189,23 +193,20 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)",
-					"$(SRCROOT)/../openssl-xcode/build/openssl.build/openssl/include",
-				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)";
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = (
 					"-DSQLITE_HAS_CODEC",
-					"-DNDEBUG",
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
+					"-DSQLCIPHER_CRYPTO_CC",
 				);
 				"OTHER_CFLAGS[arch=armv6]" = (
 					"-mno-thumb",
 					"-DSQLITE_HAS_CODEC",
-					"-DNDEBUG",
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
+					"-DSQLCIPHER_CRYPTO_CC",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = sqlcipher;
@@ -219,10 +220,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)",
-					"$(SRCROOT)/../openssl-xcode/build/openssl.build/openssl/include",
-				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)";
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = (
 					"-DSQLITE_HAS_CODEC",
@@ -230,6 +228,7 @@
 					"-DSQLITE_OS_UNIX=1",
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
+					"-DSQLCIPHER_CRYPTO_CC",
 				);
 				"OTHER_CFLAGS[arch=armv6]" = (
 					"-mno-thumb",
@@ -238,6 +237,7 @@
 					"-DSQLITE_OS_UNIX=1",
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
+					"-DSQLCIPHER_CRYPTO_CC",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = sqlcipher;
@@ -248,8 +248,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				"ARCHS[sdk=iphoneos*]" = (
+					"$(ARCHS_STANDARD)",
 					armv7s,
-					armv7,
+				);
+				"ARCHS[sdk=iphonesimulator*]" = (
+					"$(ARCHS_STANDARD)",
+					armv7s,
 				);
 				"ARCHS[sdk=macosx*]" = (
 					x86_64,
@@ -259,31 +263,40 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				"IPHONEOS_DEPLOYMENT_TARGET[arch=arm64]" = 7.0;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = "$(PLATFORM_NAME)";
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator macosx iphoneos";
+				VALID_ARCHS = "arm64 armv7 armv7s x86_64 i386";
 			};
 			name = Debug;
 		};
 		1DEB91F108733DB70010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				"ARCHS[sdk=iphoneos*]" = (
+					"$(ARCHS_STANDARD)",
 					armv7s,
-					armv7,
+				);
+				"ARCHS[sdk=iphonesimulator*]" = (
+					"$(ARCHS_STANDARD)",
+					armv7s,
 				);
 				"ARCHS[sdk=macosx*]" = (
-					x86_64,
 					i386,
+					x86_64,
 				);
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				SDKROOT = "$(PLATFORM_NAME)";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				"IPHONEOS_DEPLOYMENT_TARGET[arch=arm64]" = 7.0;
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator macosx iphoneos";
+				VALID_ARCHS = "arm64 armv7 armv7s x86_64 i386";
 			};
 			name = Release;
 		};
@@ -295,6 +308,8 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = amalgamation;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -305,6 +320,8 @@
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				PRODUCT_NAME = amalgamation;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;

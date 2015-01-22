@@ -81,6 +81,22 @@ array set ::Configs {
     -DSQLITE_DEFAULT_FILE_FORMAT=4
     -DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1
   }
+  "Check-Symbols" {
+    -DSQLITE_MEMDEBUG=1
+    -DSQLITE_ENABLE_FTS3_PARENTHESIS=1
+    -DSQLITE_ENABLE_FTS3=1
+    -DSQLITE_ENABLE_RTREE=1
+    -DSQLITE_ENABLE_MEMSYS5=1
+    -DSQLITE_ENABLE_MEMSYS3=1
+    -DSQLITE_ENABLE_COLUMN_METADATA=1
+    -DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1
+    -DSQLITE_SECURE_DELETE=1
+    -DSQLITE_SOUNDEX=1
+    -DSQLITE_ENABLE_ATOMIC_WRITE=1
+    -DSQLITE_ENABLE_IOTRACE=1
+    -DSQLITE_ENABLE_MEMORY_MANAGEMENT=1
+    -DSQLITE_ENABLE_OVERSIZE_CELL_CHECK=1
+  }
   "Debug-One" {
     -O2
     -DSQLITE_DEBUG=1
@@ -160,17 +176,25 @@ array set ::Configs {
     -DSQLITE_DISABLE_FTS4_DEFERRED
     -DSQLITE_ENABLE_RTREE
   }
+
+  "No-lookaside" {
+    -DSQLITE_TEST_REALLOC_STRESS=1
+    -DSQLITE_OMIT_LOOKASIDE=1
+    -DHAVE_USLEEP=1
+  }
 }
 
 array set ::Platforms {
   Linux-x86_64 {
-    "Debug-One"               "checksymbols test"
+    "Check-Symbols"           checksymbols
+    "Debug-One"               test
     "Secure-Delete"           test
     "Unlock-Notify"           "QUICKTEST_INCLUDE=notify2.test test"
     "Update-Delete-Limit"     test
     "Extra-Robustness"        test
     "Device-Two"              test
     "Ftrapv"                  test
+    "No-lookaside"            test
     "Default"                 "threadtest test"
     "Device-One"              fulltest
   }
@@ -330,15 +354,17 @@ proc main {argv} {
     # If the configuration included the SQLITE_DEBUG option, then remove
     # it and run veryquick.test. If it did not include the SQLITE_DEBUG option
     # add it and run veryquick.test.
-    set debug_idx [lsearch -glob $config_options -DSQLITE_DEBUG*]
-    if {$debug_idx < 0} {
-      run_test_suite "${zConfig}_debug" test [
-        concat $config_options -DSQLITE_DEBUG=1
-      ]
-    } else {
-      run_test_suite "${zConfig}_ndebug" test [
-        lreplace $config_options $debug_idx $debug_idx
-      ]
+    if {$target!="checksymbols"} {
+      set debug_idx [lsearch -glob $config_options -DSQLITE_DEBUG*]
+      if {$debug_idx < 0} {
+        run_test_suite "${zConfig}_debug" test [
+          concat $config_options -DSQLITE_DEBUG=1
+        ]
+      } else {
+        run_test_suite "${zConfig}_ndebug" test [
+          lreplace $config_options $debug_idx $debug_idx
+        ]
+      }
     }
 
   }
