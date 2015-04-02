@@ -7,25 +7,9 @@ import os, subprocess, sys, glob, string
 import zipfile
 from datetime import date
 
-def add_symlinks():
-	if not os.path.islink('assets'):
-		os.symlink('../assets', 'assets')
-	if not os.path.islink('example'):
-		os.symlink('../example', 'example')
-	if not os.path.islink('documentation'):
-		os.symlink('../documentation', 'documentation')
-	if not os.path.islink('LICENSE'):
-		os.symlink('../LICENSE', 'LICENSE')	
-
-def remove_symlinks():
-	os.unlink('assets')
-	os.unlink('example')
-	os.unlink('documentation')
-	os.unlink('LICENSE')
-
 cwd = os.path.abspath(os.path.dirname(sys._getframe(0).f_code.co_filename))
 os.chdir(cwd)
-required_module_keys = ['name','version','moduleid','description','copyright','license','copyright','platform','minsdk']
+required_module_keys = ['architectures', 'name','version','moduleid','description','copyright','license','copyright','platform','minsdk']
 module_defaults = {
 	'description':'My module',
 	'author': 'Your Name',
@@ -66,6 +50,8 @@ def read_ti_xcconfig():
 def generate_doc(config):
 	docdir = os.path.join(cwd,'documentation')
 	if not os.path.exists(docdir):
+		docdir = os.path.join(cwd,'..','documentation')
+	if not os.path.exists(docdir):
 		print "Couldn't find documentation file at: %s" % docdir
 		return None
 
@@ -84,6 +70,8 @@ def generate_doc(config):
 
 def compile_js(manifest,config):
 	js_file = os.path.join(cwd,'assets','appcelerator.encrypteddatabase.js')
+	if not os.path.exists(js_file):
+		js_file = os.path.join(cwd,'..','assets','appcelerator.encrypteddatabase.js')
 	if not os.path.exists(js_file): return
 
 	from compiler import Compiler
@@ -92,7 +80,6 @@ def compile_js(manifest,config):
 	except:
 		import simplejson as json
 
-	path = os.path.basename(js_file)
 	compiler = Compiler(cwd, manifest['moduleid'], manifest['name'], 'commonjs')
 	root_asset, module_assets = compiler.compile_module()
 
@@ -131,9 +118,13 @@ def warn(msg):
 	print "[WARN] %s" % msg
 
 def validate_license():
-	c = open(os.path.join(cwd,'LICENSE')).read()
-	if c.find(module_license_default)!=-1:
-		warn('please update the LICENSE file with your license text before distributing')
+	license_file = os.path.join(cwd,'LICENSE')
+	if not os.path.exists(license_file):
+		license_file = os.path.join(cwd,'..','LICENSE')
+	if os.path.exists(license_file):
+		c = open(license_file).read()
+		if c.find(module_license_default)!=-1:
+			warn('please update the LICENSE file with your license text before distributing')
 
 def validate_manifest():
 	path = os.path.join(cwd,'manifest')
@@ -148,6 +139,7 @@ def validate_manifest():
 		manifest[key.strip()]=value.strip()
 	for key in required_module_keys:
 		if not manifest.has_key(key): die("missing required manifest key '%s'" % key)
+		if manifest[key].strip() == '': die("manifest key '%s' missing required value" % key)
 		if module_defaults.has_key(key):
 			defvalue = module_defaults[key]
 			curvalue = manifest[key]
@@ -157,8 +149,7 @@ def validate_manifest():
 ignoreFiles = ['.DS_Store','.gitignore','libTitanium.a','titanium.jar','README']
 ignoreDirs = ['.DS_Store','.svn','.git','CVSROOT']
 
-def zip_dir(zf,dir,basepath,ignoreExt=[]):
-	if not os.path.exists(dir): return
+def zip_dir(zf,dir,basepath,ignore=[],includeJSFiles=False):
 	for root, dirs, files in os.walk(dir):
 		for name in ignoreDirs:
 			if name in dirs:
@@ -166,9 +157,10 @@ def zip_dir(zf,dir,basepath,ignoreExt=[]):
 		for file in files:
 			if file in ignoreFiles: continue
 			e = os.path.splitext(file)
-			if len(e) == 2 and e[1] in ignoreExt: continue
+			if len(e) == 2 and e[1] == '.pyc': continue
+			if not includeJSFiles and len(e) == 2 and e[1] == '.js': continue
 			from_ = os.path.join(root, file)
-			to_ = from_.replace(dir, '%s/%s'%(basepath,dir), 1)
+			to_ = from_.replace(dir, basepath, 1)
 			zf.write(from_, to_)
 
 def glob_libfiles():
@@ -185,7 +177,7 @@ def build_module(manifest,config):
 	rc = os.system("xcodebuild -sdk iphoneos -configuration Release")
 	if rc != 0:
 		die("xcodebuild failed")
-	rc = os.system("xcodebuild -sdk iphonesimulator -configuration Release -arch i386")
+	rc = os.system("xcodebuild -sdk iphonesimulator -configuration Release")
 	if rc != 0:
 		die("xcodebuild failed")
     # build the merged library using lipo
@@ -195,6 +187,24 @@ def build_module(manifest,config):
 		libpaths+='%s ' % libfile
 
 	os.system("lipo %s -create -output build/lib%s.a" %(libpaths,moduleid))
+
+def verify_build_arch(manifest, config):
+	binaryname = 'lib%s.a' % manifest['moduleid']
+	binarypath = os.path.join('build', binaryname)
+	manifestarch = set(manifest['architectures'].split(' '))
+
+	output = subprocess.check_output('xcrun lipo -info %s' % binarypath, shell=True)
+
+	builtarch = set(output.split(':')[-1].strip().split(' '))
+
+	if ('arm64' not in builtarch):
+		warn('built module is missing 64-bit support.')
+
+	if (manifestarch != builtarch):
+		warn('there is discrepancy between the architectures specified in module manifest and compiled binary.')
+		warn('architectures in manifest: %s' % ', '.join(manifestarch))
+		warn('compiled binary architectures: %s' % ', '.join(builtarch))
+		die('please update manifest to match module binary architectures.')
 
 def package_module(manifest,mf,config):
 	name = manifest['name'].lower()
@@ -213,10 +223,26 @@ def package_module(manifest,mf,config):
 			for file, html in doc.iteritems():
 				filename = string.replace(file,'.md','.html')
 				zf.writestr('%s/documentation/%s'%(modulepath,filename),html)
-	zip_dir(zf,'assets',modulepath,['.pyc','.js'])
-	zip_dir(zf,'example',modulepath,['.pyc'])
-	zip_dir(zf,'platform',modulepath,['.pyc','.js'])
-	zf.write('LICENSE','%s/LICENSE' % modulepath)
+
+	p = os.path.join(cwd, 'assets')
+	if not os.path.exists(p):
+		p = os.path.join(cwd, '..', 'assets')
+	if os.path.exists(p):
+		zip_dir(zf,p,'%s/%s' % (modulepath,'assets'),['README'])
+
+	for dn in ('example','platform'):
+		p = os.path.join(cwd, dn)
+		if not os.path.exists(p):
+			p = os.path.join(cwd, '..', dn)
+		if os.path.exists(p):
+			zip_dir(zf,p,'%s/%s' % (modulepath,dn),['README'],True)
+
+	license_file = os.path.join(cwd,'LICENSE')
+	if not os.path.exists(license_file):
+		license_file = os.path.join(cwd,'..','LICENSE')
+	if os.path.exists(license_file):
+		zf.write(license_file,'%s/LICENSE' % modulepath)
+
 	zf.write('module.xcconfig','%s/module.xcconfig' % modulepath)
 	exports_file = 'metadata.json'
 	if os.path.exists(exports_file):
@@ -225,7 +251,6 @@ def package_module(manifest,mf,config):
 
 
 if __name__ == '__main__':
-	add_symlinks()
 	manifest,mf = validate_manifest()
 	validate_license()
 	config = read_ti_xcconfig()
@@ -236,6 +261,6 @@ if __name__ == '__main__':
 
 	compile_js(manifest,config)
 	build_module(manifest,config)
+	verify_build_arch(manifest, config)
 	package_module(manifest,mf,config)
-	remove_symlinks()
 	sys.exit(0)

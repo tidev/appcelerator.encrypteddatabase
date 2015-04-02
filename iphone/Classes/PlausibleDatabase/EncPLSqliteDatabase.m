@@ -29,6 +29,8 @@
 
 #import "EncPlausibleDatabase.h"
 
+int sqlite3_key(sqlite3 *db, const void *pKey, int nKey);
+
 /* Keep trying for up to 5 seconds */
 #define SQLITE_BUSY_TIMEOUT 5000
 
