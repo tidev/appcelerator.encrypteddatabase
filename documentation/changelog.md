@@ -1,6 +1,6 @@
 # Change Log
 <pre>
-v1.0.4  Android: no changes
+v1.1.4  Android: no changes
         iOS: Added 64-bit support [MOD-2076]
 
 v1.0.4  Android: exposing setPassword and getPassword as methods [MOD-1765]
