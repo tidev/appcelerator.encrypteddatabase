@@ -241,8 +241,11 @@ do_test subquery-2.5.3.1 {
 } {10.0}
 do_test subquery-2.5.3.2 {
   # Verify that the t4i index was not used in the previous query
-  set ::sqlite_query_plan
-} {t4 {}}
+  execsql {
+    EXPLAIN QUERY PLAN
+    SELECT * FROM t4 WHERE x IN (SELECT a FROM t3);
+  }
+} {~/t4i/}
 do_test subquery-2.5.4 {
   execsql {
     DROP TABLE t3;
@@ -421,7 +424,7 @@ do_test subquery-3.5.7 {
 # and expose bugs to do with re-using statements that have been 
 # passed to sqlite3_reset().
 #
-# One problem was that VDBE memory cells were not being initialised
+# One problem was that VDBE memory cells were not being initialized
 # to NULL on the second and subsequent executions.
 #
 do_test subquery-4.1.1 {
@@ -580,5 +583,15 @@ do_test subquery-7.11 {
   }
 } {30303}
 }  ;############# Disabled
+
+# 2015-04-21.
+# Verify that a memory leak in the table column type and collation analysis
+# is plugged.
+#
+do_execsql_test subquery-8.1 {
+  CREATE TABLE t8(a TEXT, b INT);
+  SELECT (SELECT 0 FROM (SELECT * FROM t1)) AS x WHERE x;
+  SELECT (SELECT 0 FROM (SELECT * FROM (SELECT 0))) AS x WHERE x;
+} {}
 
 finish_test
