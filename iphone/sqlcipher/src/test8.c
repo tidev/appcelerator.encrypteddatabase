@@ -206,8 +206,8 @@ static int getColumnNames(
     zSpace = (char *)(&aCol[nCol]);
     for(ii=0; ii<nCol; ii++){
       aCol[ii] = zSpace;
-      zSpace += sprintf(zSpace, "%s", sqlite3_column_name(pStmt, ii));
-      zSpace++;
+      sqlite3_snprintf(nBytes, zSpace, "%s", sqlite3_column_name(pStmt,ii));
+      zSpace += (int)strlen(zSpace) + 1;
     }
     assert( (zSpace-nBytes)==(char *)aCol );
   }
@@ -265,6 +265,7 @@ static int getIndexArray(
   while( pStmt && sqlite3_step(pStmt)==SQLITE_ROW ){
     const char *zIdx = (const char *)sqlite3_column_text(pStmt, 1);
     sqlite3_stmt *pStmt2 = 0;
+    if( zIdx==0 ) continue;
     zSql = sqlite3_mprintf("PRAGMA index_info(%s)", zIdx);
     if( !zSql ){
       rc = SQLITE_NOMEM;
@@ -647,12 +648,12 @@ static int echoRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid){
 ** indeed the hash of the supplied idxStr.
 */
 static int hashString(const char *zString){
-  int val = 0;
+  u32 val = 0;
   int ii;
   for(ii=0; zString[ii]; ii++){
     val = (val << 3) + (int)zString[ii];
   }
-  return val;
+  return (int)(val&0x7fffffff);
 }
 
 /* 
@@ -776,11 +777,11 @@ static int echoBestIndex(sqlite3_vtab *tab, sqlite3_index_info *pIdxInfo){
   sqlite3_stmt *pStmt = 0;
   Tcl_Interp *interp = pVtab->interp;
 
-  int nRow;
+  int nRow = 0;
   int useIdx = 0;
   int rc = SQLITE_OK;
   int useCost = 0;
-  double cost;
+  double cost = 0;
   int isIgnoreUsable = 0;
   if( Tcl_GetVar(interp, "echo_module_ignore_usable", TCL_GLOBAL_ONLY) ){
     isIgnoreUsable = 1;
@@ -891,7 +892,7 @@ static int echoBestIndex(sqlite3_vtab *tab, sqlite3_index_info *pIdxInfo){
     pIdxInfo->estimatedCost = cost;
   }else if( useIdx ){
     /* Approximation of log2(nRow). */
-    for( ii=0; ii<(sizeof(int)*8); ii++ ){
+    for( ii=0; ii<(sizeof(int)*8)-1; ii++ ){
       if( nRow & (1<<ii) ){
         pIdxInfo->estimatedCost = (double)ii;
       }
@@ -926,7 +927,7 @@ int echoUpdate(
   sqlite3 *db = pVtab->db;
   int rc = SQLITE_OK;
 
-  sqlite3_stmt *pStmt;
+  sqlite3_stmt *pStmt = 0;
   char *z = 0;               /* SQL statement to execute */
   int bindArgZero = 0;       /* True to bind apData[0] to sql var no. nData */
   int bindArgOne = 0;        /* True to bind apData[1] to sql var no. 1 */
@@ -1300,7 +1301,7 @@ static sqlite3_module echoModuleV2 = {
 ** Decode a pointer to an sqlite3 object.
 */
 extern int getDbPointer(Tcl_Interp *interp, const char *zA, sqlite3 **ppDb);
-extern const char *sqlite3TestErrorName(int rc);
+extern const char *sqlite3ErrName(int);
 
 static void moduleDestroy(void *p){
   sqlite3_free(p);
@@ -1340,7 +1341,7 @@ static int register_echo_module(
     );
   }
 
-  Tcl_SetResult(interp, (char *)sqlite3TestErrorName(rc), TCL_STATIC);
+  Tcl_SetResult(interp, (char *)sqlite3ErrName(rc), TCL_STATIC);
   return TCL_OK;
 }
 
@@ -1370,29 +1371,6 @@ static int declare_vtab(
   return TCL_OK;
 }
 
-#include "test_spellfix.c"
-
-/*
-** Register the spellfix virtual table module.
-*/
-static int register_spellfix_module(
-  ClientData clientData,
-  Tcl_Interp *interp,
-  int objc,
-  Tcl_Obj *CONST objv[]
-){
-  sqlite3 *db;
-
-  if( objc!=2 ){
-    Tcl_WrongNumArgs(interp, 1, objv, "DB");
-    return TCL_ERROR;
-  }
-  if( getDbPointer(interp, Tcl_GetString(objv[1]), &db) ) return TCL_ERROR;
-
-  sqlite3Spellfix1Register(db);
-  return TCL_OK;
-}
-
 #endif /* ifndef SQLITE_OMIT_VIRTUALTABLE */
 
 /*
@@ -1406,7 +1384,6 @@ int Sqlitetest8_Init(Tcl_Interp *interp){
      void *clientData;
   } aObjCmd[] = {
      { "register_echo_module",       register_echo_module, 0 },
-     { "register_spellfix_module",   register_spellfix_module, 0 },
      { "sqlite3_declare_vtab",       declare_vtab, 0 },
   };
   int i;

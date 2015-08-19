@@ -27,6 +27,7 @@
 #define FTS3_MATCHINFO_LENGTH    'l'        /* nCol values */
 #define FTS3_MATCHINFO_LCS       's'        /* nCol values */
 #define FTS3_MATCHINFO_HITS      'x'        /* 3*nCol*nPhrase values */
+#define FTS3_MATCHINFO_LHITS     'y'        /* nCol*nPhrase values */
 
 /*
 ** The default value for the second argument to matchinfo(). 
@@ -128,7 +129,7 @@ struct StrBuffer {
 */
 static void fts3GetDeltaPosition(char **pp, int *piPos){
   int iVal;
-  *pp += sqlite3Fts3GetVarint32(*pp, &iVal);
+  *pp += fts3GetVarint32(*pp, &iVal);
   *piPos += (iVal-2);
 }
 
@@ -389,9 +390,9 @@ static int fts3SnippetFindPositions(Fts3Expr *pExpr, int iPhrase, void *ctx){
 ** is the snippet with the highest score, where scores are calculated
 ** by adding:
 **
-**   (a) +1 point for each occurence of a matchable phrase in the snippet.
+**   (a) +1 point for each occurrence of a matchable phrase in the snippet.
 **
-**   (b) +1000 points for the first occurence of each matchable phrase in 
+**   (b) +1000 points for the first occurrence of each matchable phrase in 
 **       the snippet for which the corresponding mCovered bit is not set.
 **
 ** The selected snippet parameters are stored in structure *pFragment before
@@ -442,37 +443,39 @@ static int fts3BestSnippet(
   sIter.nSnippet = nSnippet;
   sIter.nPhrase = nList;
   sIter.iCurrent = -1;
-  (void)fts3ExprIterate(pCsr->pExpr, fts3SnippetFindPositions, (void *)&sIter);
+  rc = fts3ExprIterate(pCsr->pExpr, fts3SnippetFindPositions, (void *)&sIter);
+  if( rc==SQLITE_OK ){
 
-  /* Set the *pmSeen output variable. */
-  for(i=0; i<nList; i++){
-    if( sIter.aPhrase[i].pHead ){
-      *pmSeen |= (u64)1 << i;
+    /* Set the *pmSeen output variable. */
+    for(i=0; i<nList; i++){
+      if( sIter.aPhrase[i].pHead ){
+        *pmSeen |= (u64)1 << i;
+      }
     }
-  }
 
-  /* Loop through all candidate snippets. Store the best snippet in 
-  ** *pFragment. Store its associated 'score' in iBestScore.
-  */
-  pFragment->iCol = iCol;
-  while( !fts3SnippetNextCandidate(&sIter) ){
-    int iPos;
-    int iScore;
-    u64 mCover;
-    u64 mHighlight;
-    fts3SnippetDetails(&sIter, mCovered, &iPos, &iScore, &mCover, &mHighlight);
-    assert( iScore>=0 );
-    if( iScore>iBestScore ){
-      pFragment->iPos = iPos;
-      pFragment->hlmask = mHighlight;
-      pFragment->covered = mCover;
-      iBestScore = iScore;
+    /* Loop through all candidate snippets. Store the best snippet in 
+     ** *pFragment. Store its associated 'score' in iBestScore.
+     */
+    pFragment->iCol = iCol;
+    while( !fts3SnippetNextCandidate(&sIter) ){
+      int iPos;
+      int iScore;
+      u64 mCover;
+      u64 mHighlite;
+      fts3SnippetDetails(&sIter, mCovered, &iPos, &iScore, &mCover,&mHighlite);
+      assert( iScore>=0 );
+      if( iScore>iBestScore ){
+        pFragment->iPos = iPos;
+        pFragment->hlmask = mHighlite;
+        pFragment->covered = mCover;
+        iBestScore = iScore;
+      }
     }
-  }
 
+    *piScore = iBestScore;
+  }
   sqlite3_free(sIter.aPhrase);
-  *piScore = iBestScore;
-  return SQLITE_OK;
+  return rc;
 }
 
 
@@ -504,6 +507,7 @@ static int fts3StringAppend(
     pStr->z = zNew;
     pStr->nAlloc = nAlloc;
   }
+  assert( pStr->z!=0 && (pStr->nAlloc >= pStr->n+nAppend+1) );
 
   /* Append the data to the string buffer. */
   memcpy(&pStr->z[pStr->n], zAppend, nAppend);
@@ -576,7 +580,7 @@ static int fts3SnippetShift(
         return rc;
       }
       while( rc==SQLITE_OK && iCurrent<(nSnippet+nDesired) ){
-        const char *ZDUMMY; int DUMMY1, DUMMY2, DUMMY3;
+        const char *ZDUMMY; int DUMMY1 = 0, DUMMY2 = 0, DUMMY3 = 0;
         rc = pMod->xNext(pC, &ZDUMMY, &DUMMY1, &DUMMY2, &DUMMY3, &iCurrent);
       }
       pMod->xClose(pC);
@@ -620,8 +624,6 @@ static int fts3SnippetText(
   int iCol = pFragment->iCol+1;   /* Query column to extract text from */
   sqlite3_tokenizer_module *pMod; /* Tokenizer module methods object */
   sqlite3_tokenizer_cursor *pC;   /* Tokenizer cursor open on zDoc/nDoc */
-  const char *ZDUMMY;             /* Dummy argument used with tokenizer */
-  int DUMMY1;                     /* Dummy argument used with tokenizer */
   
   zDoc = (const char *)sqlite3_column_text(pCsr->pStmt, iCol);
   if( zDoc==0 ){
@@ -640,10 +642,23 @@ static int fts3SnippetText(
   }
 
   while( rc==SQLITE_OK ){
-    int iBegin;                   /* Offset in zDoc of start of token */
-    int iFin;                     /* Offset in zDoc of end of token */
-    int isHighlight;              /* True for highlighted terms */
+    const char *ZDUMMY;           /* Dummy argument used with tokenizer */
+    int DUMMY1 = -1;              /* Dummy argument used with tokenizer */
+    int iBegin = 0;               /* Offset in zDoc of start of token */
+    int iFin = 0;                 /* Offset in zDoc of end of token */
+    int isHighlight = 0;          /* True for highlighted terms */
 
+    /* Variable DUMMY1 is initialized to a negative value above. Elsewhere
+    ** in the FTS code the variable that the third argument to xNext points to
+    ** is initialized to zero before the first (*but not necessarily
+    ** subsequent*) call to xNext(). This is done for a particular application
+    ** that needs to know whether or not the tokenizer is being used for
+    ** snippet generation or for some other purpose.
+    **
+    ** Extreme care is required when writing code to depend on this
+    ** initialization. It is not a documented part of the tokenizer interface.
+    ** If a tokenizer is used directly by any code outside of FTS, this
+    ** convention might not be respected.  */
     rc = pMod->xNext(pC, &ZDUMMY, &DUMMY1, &iBegin, &iFin, &iCurrent);
     if( rc!=SQLITE_OK ){
       if( rc==SQLITE_DONE ){
@@ -668,8 +683,12 @@ static int fts3SnippetText(
       ** required. They are required if (a) this is not the first fragment,
       ** or (b) this fragment does not begin at position 0 of its column. 
       */
-      if( rc==SQLITE_OK && (iPos>0 || iFragment>0) ){
-        rc = fts3StringAppend(pOut, zEllipsis, -1);
+      if( rc==SQLITE_OK ){
+        if( iPos>0 || iFragment>0 ){
+          rc = fts3StringAppend(pOut, zEllipsis, -1);
+        }else if( iBegin ){
+          rc = fts3StringAppend(pOut, zDoc, iBegin);
+        }
       }
       if( rc!=SQLITE_OK || iCurrent<iPos ) continue;
     }
@@ -791,6 +810,51 @@ static int fts3ExprLocalHitsCb(
   return rc;
 }
 
+/*
+** fts3ExprIterate() callback used to gather information for the matchinfo
+** directive 'y'.
+*/
+static int fts3ExprLHitsCb(
+  Fts3Expr *pExpr,                /* Phrase expression node */
+  int iPhrase,                    /* Phrase number */
+  void *pCtx                      /* Pointer to MatchInfo structure */
+){
+  MatchInfo *p = (MatchInfo *)pCtx;
+  Fts3Table *pTab = (Fts3Table *)p->pCursor->base.pVtab;
+  int rc = SQLITE_OK;
+  int iStart = iPhrase * p->nCol;
+  Fts3Expr *pEof;                 /* Ancestor node already at EOF */
+  
+  /* This must be a phrase */
+  assert( pExpr->pPhrase );
+
+  /* Initialize all output integers to zero. */
+  memset(&p->aMatchinfo[iStart], 0, sizeof(u32) * p->nCol);
+
+  /* Check if this or any parent node is at EOF. If so, then all output
+  ** values are zero.  */
+  for(pEof=pExpr; pEof && pEof->bEof==0; pEof=pEof->pParent);
+
+  if( pEof==0 && pExpr->iDocid==p->pCursor->iPrevId ){
+    Fts3Phrase *pPhrase = pExpr->pPhrase;
+    char *pIter = pPhrase->doclist.pList;
+    int iCol = 0;
+
+    while( 1 ){
+      int nHit = fts3ColumnlistCount(&pIter);
+      if( (pPhrase->iColumn>=pTab->nColumn || pPhrase->iColumn==iCol) ){
+        p->aMatchinfo[iStart + iCol] = (u32)nHit;
+      }
+      assert( *pIter==0x00 || *pIter==0x01 );
+      if( *pIter!=0x01 ) break;
+      pIter++;
+      pIter += fts3GetVarint32(pIter, &iCol);
+    }
+  }
+
+  return rc;
+}
+
 static int fts3MatchinfoCheck(
   Fts3Table *pTab, 
   char cArg,
@@ -803,10 +867,11 @@ static int fts3MatchinfoCheck(
    || (cArg==FTS3_MATCHINFO_LENGTH && pTab->bHasDocsize)
    || (cArg==FTS3_MATCHINFO_LCS)
    || (cArg==FTS3_MATCHINFO_HITS)
+   || (cArg==FTS3_MATCHINFO_LHITS)
   ){
     return SQLITE_OK;
   }
-  *pzErr = sqlite3_mprintf("unrecognized matchinfo request: %c", cArg);
+  sqlite3Fts3ErrMsg(pzErr, "unrecognized matchinfo request: %c", cArg);
   return SQLITE_ERROR;
 }
 
@@ -824,6 +889,10 @@ static int fts3MatchinfoSize(MatchInfo *pInfo, char cArg){
     case FTS3_MATCHINFO_LENGTH:
     case FTS3_MATCHINFO_LCS:
       nVal = pInfo->nCol;
+      break;
+
+    case FTS3_MATCHINFO_LHITS:
+      nVal = pInfo->nCol * pInfo->nPhrase;
       break;
 
     default:
@@ -1080,6 +1149,10 @@ static int fts3MatchinfoValues(
         }
         break;
 
+      case FTS3_MATCHINFO_LHITS:
+        (void)fts3ExprIterate(pCsr->pExpr, fts3ExprLHitsCb, (void*)pInfo);
+        break;
+
       default: {
         Fts3Expr *pExpr;
         assert( zArg[i]==FTS3_MATCHINFO_HITS );
@@ -1235,7 +1308,7 @@ void sqlite3Fts3Snippet(
       */
       for(iRead=0; iRead<pTab->nColumn; iRead++){
         SnippetFragment sF = {0, 0, 0, 0};
-        int iS;
+        int iS = 0;
         if( iCol>=0 && iRead!=iCol ) continue;
 
         /* Find the best snippet of nFToken tokens in column iRead. */
@@ -1333,8 +1406,6 @@ void sqlite3Fts3Offsets(
 ){
   Fts3Table *pTab = (Fts3Table *)pCsr->base.pVtab;
   sqlite3_tokenizer_module const *pMod = pTab->pTokenizer->pModule;
-  const char *ZDUMMY;             /* Dummy argument used with xNext() */
-  int NDUMMY;                     /* Dummy argument used with xNext() */
   int rc;                         /* Return Code */
   int nToken;                     /* Number of tokens in query */
   int iCol;                       /* Column currently being processed */
@@ -1367,9 +1438,11 @@ void sqlite3Fts3Offsets(
   */
   for(iCol=0; iCol<pTab->nColumn; iCol++){
     sqlite3_tokenizer_cursor *pC; /* Tokenizer cursor */
-    int iStart;
-    int iEnd;
-    int iCurrent;
+    const char *ZDUMMY;           /* Dummy argument used with xNext() */
+    int NDUMMY = 0;               /* Dummy argument used with xNext() */
+    int iStart = 0;
+    int iEnd = 0;
+    int iCurrent = 0;
     const char *zDoc;
     int nDoc;
 
