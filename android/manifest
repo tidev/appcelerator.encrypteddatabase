@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.0.4
+version: 1.3.0
 apiversion: 2
 architectures: armeabi armeabi-v7a x86
 description: Provides transparent, secure 256-bit AES encryption of SQLite database files.
@@ -16,4 +16,4 @@ name: encrypteddatabase
 moduleid: appcelerator.encrypteddatabase
 guid: d1b3740c-ec53-45c6-8454-8748f91da6ad
 platform: android
-minsdk: 3.3.0
+minsdk: 4.0.0.GA
