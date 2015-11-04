@@ -1,5 +1,8 @@
 # Change Log
 <pre>
+v1.3.0  Android: Updated SQLCipher to version 3.3.1-2 [TIMOB-19206]
+        iOS: No Changes. Bumped to v1.3.0 to match Android.
+
 v1.2.0  Android: no changes
         iOS: update all libs to 64 bit [TIMOB-19262] [MOD-2076]
 
