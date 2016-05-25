@@ -80,12 +80,74 @@
         for (NSString* oldFile in contents) {
             [fm moveItemAtPath:[oldPath stringByAppendingPathComponent:oldFile] toPath:[dbPath stringByAppendingPathComponent:oldFile] error:nil];
         }
-        
         // Remove the old copy after migrating everything
         [fm removeItemAtPath:oldPath error:nil];
     }
 	
 	return dbPath;
+}
+
+-(BOOL)needCipherMigrate: (NSString*) name_
+{
+    NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+    BOOL isDirectory;
+    //check if this is first install
+    BOOL exists = [fm fileExistsAtPath:dbPath isDirectory:&isDirectory];
+    
+    if (!exists) {
+        return NO;
+    }
+    
+    NSString* versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
+    BOOL version131Exists = [fm fileExistsAtPath:versionFile];
+    NSString* databaseFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"sql"];
+    BOOL databaseExists = [fm fileExistsAtPath:databaseFile];
+
+    //check if both files exist
+    if (version131Exists && databaseExists) {
+        return NO;
+    }
+    //check if this is a new database
+    if (!databaseExists) {
+        return NO;
+    }
+    NSString *version = @"1.3.1";
+    [fm createFileAtPath:versionFile contents:[version dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+    return YES;
+}
+
+-(NSString*)generateTempPath
+{
+    NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+   return [dbPath stringByAppendingPathComponent:@"temp.db"];
+}
+
+-(BOOL)replaceOldCopy: (NSString *)oldPath withNewCopy: (NSString *)newPath
+{
+    if (oldPath == nil || newPath == nil) {
+        NSLog(@"[ERROR] cannot copy with empty paths");
+        return NO;
+    }
+    NSFileManager *fm = [NSFileManager defaultManager];
+	NSError *error = nil;
+    [fm removeItemAtPath:oldPath error:&error];
+    if (error!=nil) {
+        [self throwException:@"error removing old database file" subreason:[error description] location:CODELOCATION];
+        return NO;
+    }
+    [fm moveItemAtPath:newPath toPath:oldPath error:&error];
+    if (error!=nil) {
+        [self throwException:@"error overwriting old database file" subreason:[error description] location:CODELOCATION];
+        return NO;
+    }
+    return YES;
+    
 }
 
 -(NSString*)dbPath:(NSString*)name_
@@ -97,13 +159,22 @@
 -(void)open:(NSString*)name_
 {
 	name = [name_ retain];
-	NSString *path = [self dbPath:name];
-	
-	database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
-	if (![database open])
-	{
-		[self throwException:@"couldn't open database" subreason:name_ location:CODELOCATION];
-	}
+
+    if (![self needCipherMigrate: name]) {
+        NSString *path = [self dbPath:name];
+        database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+        if (![database open]) {
+            [self throwException:@"couldn't open database" subreason:name_ location:CODELOCATION];
+        }
+        return;
+    }
+    NSString *path = [self dbPath:name];
+    NSString *tempPath = [self generateTempPath];
+    database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+    if (![database openAndMigrate:nil]) {
+        [self throwException:@"couldn't open database and migrate" subreason:name_ location:CODELOCATION];
+    }
+    [self replaceOldCopy:path withNewCopy:tempPath];
 }
 
 -(void)removeStatement:(EncPLSqliteResultSet*)statement
