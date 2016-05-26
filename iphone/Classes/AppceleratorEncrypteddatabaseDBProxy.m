@@ -15,6 +15,8 @@
 
 @synthesize password;
 
+BOOL isNewDatabase = NO;
+
 -(void)dealloc
 {
 	[self _destroy];
@@ -67,6 +69,7 @@
 	// create folder, and migrate the old one if necessary    
 	if (!exists) 
 	{
+        isNewDatabase = YES;
         [fm createDirectoryAtPath:dbPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
     
@@ -82,6 +85,7 @@
         }
         // Remove the old copy after migrating everything
         [fm removeItemAtPath:oldPath error:nil];
+        isNewDatabase = NO;
     }
 	
 	return dbPath;
@@ -92,30 +96,19 @@
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
     NSFileManager *fm = [NSFileManager defaultManager];
-    
-    BOOL isDirectory;
-    //check if this is first install
-    BOOL exists = [fm fileExistsAtPath:dbPath isDirectory:&isDirectory];
-    
-    if (!exists) {
-        return NO;
-    }
-    
     NSString* versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
     BOOL version131Exists = [fm fileExistsAtPath:versionFile];
-    NSString* databaseFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"sql"];
-    BOOL databaseExists = [fm fileExistsAtPath:databaseFile];
-
-    //check if both files exist
-    if (version131Exists && databaseExists) {
+    if (version131Exists) {
+        //already installed using 1.3.1 and above.
         return NO;
     }
-    //check if this is a new database
-    if (!databaseExists) {
-        return NO;
-    }
+    //create version file for 1.3.1 and above.
     NSString *version = @"1.3.1";
     [fm createFileAtPath:versionFile contents:[version dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+    if (isNewDatabase) {
+        return NO;
+    }
+    //this app is upgraded from an older module. Needs migration.
     return YES;
 }
 
@@ -159,9 +152,8 @@
 -(void)open:(NSString*)name_
 {
 	name = [name_ retain];
-
+    NSString *path = [self dbPath:name];
     if (![self needCipherMigrate: name]) {
-        NSString *path = [self dbPath:name];
         database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
         if (![database open]) {
             [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
@@ -169,7 +161,6 @@
         }
         return;
     }
-    NSString *path = [self dbPath:name];
     NSString *tempPath = [self generateTempPath];
     database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
     if (![database openAndMigrate:nil]) {
