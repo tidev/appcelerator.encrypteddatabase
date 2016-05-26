@@ -135,15 +135,15 @@
         return NO;
     }
     NSFileManager *fm = [NSFileManager defaultManager];
-	NSError *error = nil;
+    NSError *error = nil;
     [fm removeItemAtPath:oldPath error:&error];
-    if (error!=nil) {
-        [self throwException:@"error removing old database file" subreason:[error description] location:CODELOCATION];
+    if (error != nil) {
+        [self throwException:@"Error removing old database file" subreason:[error description] location:CODELOCATION];
         return NO;
     }
     [fm moveItemAtPath:newPath toPath:oldPath error:&error];
-    if (error!=nil) {
-        [self throwException:@"error overwriting old database file" subreason:[error description] location:CODELOCATION];
+    if (error != nil) {
+        [self throwException:@"Error overwriting old database file" subreason:[error description] location:CODELOCATION];
         return NO;
     }
     return YES;
@@ -164,7 +164,8 @@
         NSString *path = [self dbPath:name];
         database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
         if (![database open]) {
-            [self throwException:@"couldn't open database" subreason:name_ location:CODELOCATION];
+            [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
+            RELEASE_TO_NIL(database);
         }
         return;
     }
@@ -172,7 +173,9 @@
     NSString *tempPath = [self generateTempPath];
     database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
     if (![database openAndMigrate:nil]) {
-        [self throwException:@"couldn't open database and migrate" subreason:name_ location:CODELOCATION];
+        [self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
+        RELEASE_TO_NIL(database);
+        return;
     }
     [self replaceOldCopy:path withNewCopy:tempPath];
 }
