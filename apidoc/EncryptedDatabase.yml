@@ -27,6 +27,26 @@ extends: Titanium.Database
 since: "1.0.0"
 platforms: [android,iphone,ipad]
 
+methods:
+  - name: cipherUpgrade
+    summary: upgrades sqlcipher used in database.
+    description: |
+        This method can be used to upgrade the sqlcipher used in the database, when
+        upgrading from an existing app that uses this module from version 1.0.0 to 1.3.1.
+        Make sure the password is set before using this method.
+        Alternatively, using database.open() would also update the sqlcipher if the module
+        detects that it's using an older version. This method is optional to give developers
+        more flexibility when doing version upgrade on apps.
+    returns:
+        type: cipherUpgradeResult
+    platforms: [iphone, ipad]
+    parameters:
+      - name: name
+        summary: |
+            database name
+        type: String
+    since: "1.3.1"
+
 properties:
 
   - name: password
@@ -43,8 +63,16 @@ examples:
 
             var encryptedDatabase = require("appcelerator.encrypteddatabase");
             encryptedDatabase.password = "my great password";
-
-            var db = encryptedDatabase.open('mydb);
+            //cipherUpgrade if necessary
+            var cipherUpgraded = encrypteddatabase.cipherUpgrade('mydb');
+            if (cipherUpgraded.skip) {
+                Ti.API.info('cipher upgrade not required');
+            } else if (cipherUpgraded.success) {
+                Ti.API.info('cipher upgrade success');
+            } else {
+                Ti.API.info(cipherUpgraded.error);
+            }
+            var db = encryptedDatabase.open('mydb');
             db.execute('CREATE TABLE IF NOT EXISTS people (name TEXT, phone_number TEXT, city TEXT)');
             db.execute('DELETE FROM people');
             db.execute('INSERT INTO people (name, phone_number, city) VALUES (?, ?, ?)', ['Paul', '020 7000 0000', 'London']);
@@ -58,3 +86,25 @@ examples:
             }
             rows.close();
             db.close();
+
+---
+name: cipherUpgradeResult
+summary: Dictionary result for the cipherUpgrade method.
+platforms: [iphone, ipad]
+
+properties:
+- name: success
+  summary: Returns true if cipher sucessfully upgraded. otherwise false.
+  type: Boolean
+
+- name: skip
+  summary: returns true if cipher upgrade not necessary. otherwise false.
+  type: Boolean
+
+- name: error
+  summary: Error message if any.
+  type: String
+
+- name: code
+  summary: Result code. 0 if success or skip. -1 if fail.
+  type: Number

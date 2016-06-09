@@ -42,6 +42,14 @@
 	return db;
 }
 
+-(id)cipherUpgrade:(id)path
+{
+	ENSURE_SINGLE_ARG(path,NSString);
+	AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
+	db.password = password;
+	return [db cipherUpgrade:path];
+}
+
 -(id)install:(id)args
 {
 	ENSURE_ARG_COUNT(args,2);

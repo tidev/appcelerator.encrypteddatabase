@@ -149,6 +149,34 @@ BOOL isNewDatabase = NO;
 	return [[dbDir stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"sql"];
 }
 
+-(NSDictionary*)cipherUpgrade:(NSString*)name_
+{
+	name = [name_ retain];
+	NSString *path = [self dbPath:name];
+	if (![self needCipherMigrate: name]) {
+		return [[NSDictionary alloc] initWithObjectsAndKeys:
+				[NSNumber numberWithBool:NO],@"success",
+				[NSNumber numberWithBool:YES],@"skip",
+				[NSNumber numberWithInt:0],@"code", @"",@"error", nil];
+	}
+	NSString *tempPath = [self generateTempPath];
+	database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+	if (![database openAndMigrate:nil]) {
+		[self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
+		RELEASE_TO_NIL(database);
+		return [[NSDictionary alloc] initWithObjectsAndKeys:
+				[NSNumber numberWithBool:NO],@"success",
+				[NSNumber numberWithBool:NO],@"skip",
+				[NSNumber numberWithInt:-1],@"code", @"Couldn't open database and migrate",@"error", nil];
+	}
+	[self replaceOldCopy:path withNewCopy:tempPath];
+	[database close];
+	return [[NSDictionary alloc] initWithObjectsAndKeys:
+			[NSNumber numberWithBool:YES],@"success",
+			[NSNumber numberWithBool:NO],@"skip",
+			[NSNumber numberWithInt:0],@"code", @"",@"error", nil];
+}
+
 -(void)open:(NSString*)name_
 {
 	name = [name_ retain];

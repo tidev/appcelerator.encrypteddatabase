@@ -159,6 +159,15 @@ function Sync(method, model, opts) {
         resp = null,
         db, sql;
 
+    //cipherUpgrade if necessary
+    var cipherUpgraded = _database.cipherUpgrade(dbName);
+    if (cipherUpgraded.skip) {
+        Ti.API.info('cipher upgrade not required');
+    } else if (cipherUpgraded.success) {
+        Ti.API.info('cipher upgrade success');
+    } else {
+        Ti.API.info(cipherUpgraded.error);
+    }
     switch (method) {
         case 'create':
         case 'update':
@@ -408,6 +417,16 @@ function installDatabase(config) {
     //var isAbsolute = match[1] ? true : false;
     config.adapter.db_name = config.adapter.db_name || match[2];
     var dbName = config.adapter.db_name;
+
+    //cipherUpgrade if necessary
+    var cipherUpgraded = _database.cipherUpgrade(dbName);
+    if (cipherUpgraded.skip) {
+        Ti.API.info('cipher upgrade not required');
+    } else if (cipherUpgraded.success) {
+        Ti.API.info('cipher upgrade success');
+    } else {
+        Ti.API.info(cipherUpgraded.error);
+    }
 
     // install and open the preloaded db
     Ti.API.debug('Installing sql database "' + dbFile + '" with name "' + dbName + '"');
