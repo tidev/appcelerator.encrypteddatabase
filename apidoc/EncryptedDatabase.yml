@@ -28,8 +28,25 @@ since: "1.0.0"
 platforms: [android,iphone,ipad]
 
 methods:
+  - name: isCipherUpgradeRequired
+    summary: Checks and returns if sqlcipher is required to be updated
+    description: |
+        This is a check to see if the database is using an older version of sqlcipher.
+        Use this to check before opening the database, so that you could prompt or inform
+        the user that it might take a while for database.open() to execute completely, since
+        calling database.open() does the updating internally, and it might take a while depending
+        on how big the database is. Returns true if required, otherwise false.
+    returns:
+        type: Boolean
+    platforms: [iphone, ipad]
+    parameters:
+      - name: name
+        summary: |
+            database name
+        type: String
+    since: "1.3.1"    
   - name: cipherUpgrade
-    summary: upgrades sqlcipher used in database.
+    summary: Upgrades sqlcipher used in database.
     description: |
         This method can be used to upgrade the sqlcipher used in the database, when
         upgrading from an existing app that uses this module from version 1.0.0 to 1.3.1.

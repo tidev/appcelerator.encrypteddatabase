@@ -91,7 +91,7 @@ BOOL isNewDatabase = NO;
 	return dbPath;
 }
 
--(BOOL)needCipherMigrate: (NSString*) name_
+-(BOOL)needCipherMigrate:(NSString*)name_
 {
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
@@ -112,6 +112,11 @@ BOOL isNewDatabase = NO;
     return YES;
 }
 
+-(NSNumber*)isCipherUpgradeRequired:(id)args
+{
+	ENSURE_SINGLE_ARG(args, NSString)
+	return NUMBOOL([self needCipherMigrate:args]);
+}
 -(NSString*)generateTempPath
 {
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
@@ -189,6 +194,7 @@ BOOL isNewDatabase = NO;
         }
         return;
     }
+	//we need to migrate here
     NSString *tempPath = [self generateTempPath];
     database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
     if (![database openAndMigrate:nil]) {
@@ -196,7 +202,17 @@ BOOL isNewDatabase = NO;
         RELEASE_TO_NIL(database);
         return;
     }
+	//close the old database
+	[database close];
+	RELEASE_TO_NIL(database);
+	//copy new database over old one
     [self replaceOldCopy:path withNewCopy:tempPath];
+	//now open the new database
+	database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+	if (![database open]) {
+		[self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
+		RELEASE_TO_NIL(database);
+	}
 }
 
 -(void)removeStatement:(EncPLSqliteResultSet*)statement
