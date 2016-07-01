@@ -76,34 +76,74 @@ properties:
 examples:
   - title: Opening Encrypted Database
     example: |
-        This example demonstrates the proper technique for connecting to an encrypted database.
-
-            var encryptedDatabase = require("appcelerator.encrypteddatabase");
-            encryptedDatabase.password = "my great password";
-            //cipherUpgrade if necessary
-            var cipherUpgraded = encrypteddatabase.cipherUpgrade('mydb');
-            if (cipherUpgraded.skip) {
-                Ti.API.info('cipher upgrade not required');
-            } else if (cipherUpgraded.success) {
-                Ti.API.info('cipher upgrade success');
-            } else {
-                Ti.API.info(cipherUpgraded.error);
+        //This example demonstrates connecting to an encrypted database.
+        var dbobj = require("appcelerator.encrypteddatabase");
+        var instance = null;
+        var dataTofetch = null;
+        var win = Ti.UI.createWindow({
+            backgroundColor: 'white'
+        });
+        var indicator = Ti.UI.createActivityIndicator({
+            color: 'green',
+            font: {fontFamily:'Helvetica Neue', fontSize:26, fontWeight:'bold'},
+            message: 'Upgrading database...',
+            style: Ti.UI.ActivityIndicatorStyle.DARK,
+            top:'30%',
+            height:Ti.UI.SIZE,
+            width:Ti.UI.SIZE
+        });
+        function init() {
+            //check if method exist
+            if (dbobj.isCipherUpgradeRequired) {
+                //check if cipher upgrade required.
+                if (dbobj.isCipherUpgradeRequired('test.db')) {
+                    Ti.API.info('upgrade of database required');
+                    indicator.show();
+                    dbobj.setPassword('secret');
+                    Ti.API.info("Opening DB...");
+                    instance = dbobj.open('test.db');
+                    indicator.hide();
+                    Ti.API.info('database upgrade complete');
+                    return;
+                }
             }
-            var db = encryptedDatabase.open('mydb');
-            db.execute('CREATE TABLE IF NOT EXISTS people (name TEXT, phone_number TEXT, city TEXT)');
-            db.execute('DELETE FROM people');
-            db.execute('INSERT INTO people (name, phone_number, city) VALUES (?, ?, ?)', ['Paul', '020 7000 0000', 'London']);
-            var rows = db.execute('SELECT rowid,name,phone_number,city FROM people');
-            while (rows.isValidRow()) {
-                alert('Person ---> ROWID: ' + rows.fieldByName('rowid')
-                    + ', name:' + rows.field(1)
-                    + ', phone_number: ' + rows.fieldByName('phone_number')
-                    + ', city: ' + rows.field(3));
-                rows.next();
+            //cipher upgrade not required
+            Ti.API.info('cipher upgrade not required');     
+            dbobj.setPassword('secret');
+            Ti.API.info("Opening DB...");
+            instance = dbobj.open('test.db');
+        }
+        function setup() {
+            instance.execute("CREATE TABLE IF NOT EXISTS testtable(id integer PRIMARY KEY);");
+            instance.execute("INSERT OR IGNORE INTO testtable(id) VALUES (1);");
+        }
+        function insert(){
+            var dataToInsertHandle = instance.execute("SELECT id FROM testtable ORDER BY id DESC LIMIT 1;");
+            var dataToInsert = null;
+            if(dataToInsertHandle.isValidRow()) {
+                dataToInsert = (dataToInsertHandle.fieldByName('id') + 1);
+                dataTofetch = dataToInsert;
             }
-            rows.close();
-            db.close();
-
+            instance.execute("INSERT OR IGNORE INTO testtable(id) VALUES (" + dataToInsert + ");");
+        }
+        function fetch() {
+            var rowValue = null;
+            var rowHandle = instance.execute("SELECT * FROM testtable WHERE id=" + dataTofetch + ";");
+            if (rowHandle.isValidRow()) {
+                rowValue = rowHandle.fieldByName('id');
+            }
+            alert("Fetched Data: " + rowValue);
+        }
+        function closeDB() {
+            instance.close();
+        } 
+        win.add(indicator);
+        win.open();
+        init();
+        setup();
+        insert();
+        fetch();
+        closeDB();
 ---
 name: cipherUpgradeResult
 summary: Dictionary result for the cipherUpgrade method.

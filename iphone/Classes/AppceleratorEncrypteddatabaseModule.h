@@ -21,4 +21,5 @@ typedef enum {
 
 @property(nonatomic,readwrite,retain) NSString* password;
 -(id)cipherUpgrade:(id)path;
+-(NSNumber*)isCipherUpgradeRequired:(id)args;
 @end

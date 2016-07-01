@@ -90,7 +90,7 @@ BOOL isNewDatabase = NO;
 	
 	return dbPath;
 }
-
+//internal use
 -(BOOL)needCipherMigrate:(NSString*)name_
 {
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
@@ -115,8 +115,32 @@ BOOL isNewDatabase = NO;
 -(NSNumber*)isCipherUpgradeRequired:(id)args
 {
 	ENSURE_SINGLE_ARG(args, NSString)
-	return NUMBOOL([self needCipherMigrate:args]);
+	NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+	NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
+	NSFileManager *fm = [NSFileManager defaultManager];
+	BOOL isDirectory;
+	BOOL exists = [fm fileExistsAtPath:dbPath isDirectory:&isDirectory];
+	
+	// Because of sandboxing, this should never happen, but we still need to handle it.
+	if (exists && !isDirectory) {
+		NSLog(@"[WARN] Recreating file %@... should be a directory and isn't.", dbPath);
+		[fm removeItemAtPath:dbPath error:nil];
+		exists = NO;
+	}
+	//folder doesn't exist. Brand new install
+	if (!exists) {
+		return NUMBOOL(NO);
+	}
+	NSString* versionFile = [[dbPath stringByAppendingPathComponent:args] stringByAppendingPathExtension:@"version"];
+	BOOL version131Exists = [fm fileExistsAtPath:versionFile];
+	if (version131Exists) {
+		//already installed using 1.3.1 and above.
+		return NUMBOOL(NO);
+	}
+	//this app is upgraded from an older module. Needs migration.
+	return NUMBOOL(YES);
 }
+
 -(NSString*)generateTempPath
 {
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
