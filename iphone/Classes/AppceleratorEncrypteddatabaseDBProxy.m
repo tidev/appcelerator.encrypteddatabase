@@ -15,6 +15,8 @@
 
 @synthesize password;
 
+BOOL isNewDatabase = NO;
+
 -(void)dealloc
 {
 	[self _destroy];
@@ -67,6 +69,7 @@
 	// create folder, and migrate the old one if necessary    
 	if (!exists) 
 	{
+        isNewDatabase = YES;
         [fm createDirectoryAtPath:dbPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
     
@@ -80,12 +83,93 @@
         for (NSString* oldFile in contents) {
             [fm moveItemAtPath:[oldPath stringByAppendingPathComponent:oldFile] toPath:[dbPath stringByAppendingPathComponent:oldFile] error:nil];
         }
-        
         // Remove the old copy after migrating everything
         [fm removeItemAtPath:oldPath error:nil];
+        isNewDatabase = NO;
     }
 	
 	return dbPath;
+}
+//internal use
+-(BOOL)needCipherMigrate:(NSString*)name_
+{
+    NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSString* versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
+    BOOL version131Exists = [fm fileExistsAtPath:versionFile];
+    if (version131Exists) {
+        //already installed using 1.3.1 and above.
+        return NO;
+    }
+    //create version file for 1.3.1 and above.
+    NSString *version = @"1.3.1";
+    [fm createFileAtPath:versionFile contents:[version dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+    if (isNewDatabase) {
+        return NO;
+    }
+    //this app is upgraded from an older module. Needs migration.
+    return YES;
+}
+
+-(NSNumber*)isCipherUpgradeRequired:(id)args
+{
+	ENSURE_SINGLE_ARG(args, NSString)
+	NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+	NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
+	NSFileManager *fm = [NSFileManager defaultManager];
+	BOOL isDirectory;
+	BOOL exists = [fm fileExistsAtPath:dbPath isDirectory:&isDirectory];
+	
+	// Because of sandboxing, this should never happen, but we still need to handle it.
+	if (exists && !isDirectory) {
+		NSLog(@"[WARN] Recreating file %@... should be a directory and isn't.", dbPath);
+		[fm removeItemAtPath:dbPath error:nil];
+		exists = NO;
+	}
+	//folder doesn't exist. Brand new install
+	if (!exists) {
+		return NUMBOOL(NO);
+	}
+	NSString* versionFile = [[dbPath stringByAppendingPathComponent:args] stringByAppendingPathExtension:@"version"];
+	BOOL version131Exists = [fm fileExistsAtPath:versionFile];
+	if (version131Exists) {
+		//already installed using 1.3.1 and above.
+		return NUMBOOL(NO);
+	}
+	//this app is upgraded from an older module. Needs migration.
+	return NUMBOOL(YES);
+}
+
+-(NSString*)generateTempPath
+{
+    NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+   return [dbPath stringByAppendingPathComponent:@"temp.db"];
+}
+
+-(BOOL)replaceOldCopy: (NSString *)oldPath withNewCopy: (NSString *)newPath
+{
+    if (oldPath == nil || newPath == nil) {
+        NSLog(@"[ERROR] cannot copy with empty paths");
+        return NO;
+    }
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSError *error = nil;
+    [fm removeItemAtPath:oldPath error:&error];
+    if (error != nil) {
+        [self throwException:@"Error removing old database file" subreason:[error description] location:CODELOCATION];
+        return NO;
+    }
+    [fm moveItemAtPath:newPath toPath:oldPath error:&error];
+    if (error != nil) {
+        [self throwException:@"Error overwriting old database file" subreason:[error description] location:CODELOCATION];
+        return NO;
+    }
+    return YES;
+    
 }
 
 -(NSString*)dbPath:(NSString*)name_
@@ -94,15 +178,64 @@
 	return [[dbDir stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"sql"];
 }
 
--(void)open:(NSString*)name_
+-(NSDictionary*)cipherUpgrade:(NSString*)name_
 {
 	name = [name_ retain];
 	NSString *path = [self dbPath:name];
-	
+	if (![self needCipherMigrate: name]) {
+		return [[NSDictionary alloc] initWithObjectsAndKeys:
+				[NSNumber numberWithBool:NO],@"success",
+				[NSNumber numberWithBool:YES],@"skip",
+				[NSNumber numberWithInt:0],@"code", @"",@"error", nil];
+	}
+	NSString *tempPath = [self generateTempPath];
+	database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+	if (![database openAndMigrate:nil]) {
+		[self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
+		RELEASE_TO_NIL(database);
+		return [[NSDictionary alloc] initWithObjectsAndKeys:
+				[NSNumber numberWithBool:NO],@"success",
+				[NSNumber numberWithBool:NO],@"skip",
+				[NSNumber numberWithInt:-1],@"code", @"Couldn't open database and migrate",@"error", nil];
+	}
+	[self replaceOldCopy:path withNewCopy:tempPath];
+	[database close];
+	return [[NSDictionary alloc] initWithObjectsAndKeys:
+			[NSNumber numberWithBool:YES],@"success",
+			[NSNumber numberWithBool:NO],@"skip",
+			[NSNumber numberWithInt:0],@"code", @"",@"error", nil];
+}
+
+-(void)open:(NSString*)name_
+{
+	name = [name_ retain];
+    NSString *path = [self dbPath:name];
+    if (![self needCipherMigrate: name]) {
+        database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+        if (![database open]) {
+            [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
+            RELEASE_TO_NIL(database);
+        }
+        return;
+    }
+	//we need to migrate here
+    NSString *tempPath = [self generateTempPath];
+    database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+    if (![database openAndMigrate:nil]) {
+        [self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
+        RELEASE_TO_NIL(database);
+        return;
+    }
+	//close the old database
+	[database close];
+	RELEASE_TO_NIL(database);
+	//copy new database over old one
+    [self replaceOldCopy:path withNewCopy:tempPath];
+	//now open the new database
 	database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
-	if (![database open])
-	{
-		[self throwException:@"couldn't open database" subreason:name_ location:CODELOCATION];
+	if (![database open]) {
+		[self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
+		RELEASE_TO_NIL(database);
 	}
 }
 

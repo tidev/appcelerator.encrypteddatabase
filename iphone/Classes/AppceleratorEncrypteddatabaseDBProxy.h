@@ -20,6 +20,8 @@
 @property(nonatomic,readonly) NSNumber *lastInsertRowId;
 @property(nonatomic,readwrite,retain) NSString* password;
 
+-(NSDictionary*)cipherUpgrade:(NSString*)name_;
+-(NSNumber*)isCipherUpgradeRequired:(id)args;
 -(void)open:(NSString*)name;
 -(void)install:(NSString*)path name:(NSString*)name;
 -(id)execute:(id)args;

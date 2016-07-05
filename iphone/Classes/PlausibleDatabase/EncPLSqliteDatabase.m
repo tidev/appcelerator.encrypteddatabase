@@ -71,15 +71,25 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
  * @par Designated Initializer
  * This method is the designated initializer for the EncPLSqliteDatabase class.
  */
-- (id) initWithPath: (NSString*) dbPath andPassword: (NSString*) password {
+- (id) initWithPath: (NSString*) dbPath andPassword: (NSString*) password withTempPath: (NSString*) tempPath{
     if ((self = [super init]) == nil)
         return nil;
 
     _path = [dbPath retain];
+    _tempPath = nil;
+    if (tempPath != nil) {
+        _tempPath = [tempPath retain];
+    }
+
     _password = [password retain];
     
     return self;
 }
+
+- (id) initWithPath: (NSString*) dbPath andPassword: (NSString*) password {
+    return [self initWithPath:dbPath andPassword:password withTempPath:nil];
+}
+
 
 - (NSString *) path;
 {
@@ -153,7 +163,6 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         key = [_password UTF8String];
     }
     sqlite3_key(_sqlite, key, strlen(key));
-    
     /* Set a busy timeout */
     err = sqlite3_busy_timeout(_sqlite, SQLITE_BUSY_TIMEOUT);
     if (err != SQLITE_OK) {
@@ -165,6 +174,93 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     
+    /* Success */
+    return YES;
+}
+
+- (BOOL) openAndMigrate: (NSError **) error {
+    int err;
+    
+    /* Do not call open twice! */
+    if (_sqlite != nil)
+        [NSException raise: ENC_EncPLSqliteException format: @"Attempted to open already-open SQLite database instance at '%@'. Called -[EncPLSqliteDatabase open] twice?", _path];
+    
+    if (_tempPath == nil) {
+        NSLog(@"[ERROR] There's no temp path for migration.");
+        return NO;
+    }
+    /* Open the database */
+    err = sqlite3_open([_path fileSystemRepresentation], &_sqlite);
+    if (err != SQLITE_OK) {
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorFileNotFound
+                description: NSLocalizedString(@"The SQLite database file could not be found.", @"")
+                queryString: nil];
+        return NO;
+    }
+    
+    /* Set a password */
+    const char* key;
+    if (_password == nil || [_password isEqualToString:@"DEFAULT"]) {
+        AppModule *app = [[AppModule alloc] init];
+        key = [[app guid] UTF8String];
+    }
+    else {
+        key = [_password UTF8String];
+    }
+    sqlite3_key(_sqlite, key, strlen(key));
+    /* Set a busy timeout */
+    err = sqlite3_busy_timeout(_sqlite, SQLITE_BUSY_TIMEOUT);
+    if (err != SQLITE_OK) {
+        /* This should never happen. */
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorUnknown
+                description: NSLocalizedString(@"The SQLite database busy timeout could not be set due to an internal error.", @"")
+                queryString: nil];
+        return NO;
+    }
+    char *errMsg;
+    //prepare existing database for migration
+    err = sqlite3_exec(_sqlite, [@"PRAGMA kdf_iter = 4000;" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                queryString: nil];
+        return NO;
+    }
+    //attach new database
+    err = sqlite3_exec(_sqlite, [[NSString stringWithFormat:@"ATTACH DATABASE '%s' AS newdb KEY '%@';",[_tempPath fileSystemRepresentation],_password] UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate: failed to attach new database.", @"")
+                queryString: nil];
+        return NO;
+    }
+    //sqlcipher_export
+    err = sqlite3_exec(_sqlite, [@"SELECT sqlcipher_export('newdb');" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate: failed sqlcipher_export.", @"")
+                queryString: nil];
+        return NO;
+    }
+    //detach database
+    err = sqlite3_exec(_sqlite, [@"DETACH DATABASE newdb;" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate failed: failed to detach database.", @"")
+                queryString: nil];
+        return NO;
+    }
+
     /* Success */
     return YES;
 }

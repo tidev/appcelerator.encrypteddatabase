@@ -37,6 +37,7 @@ extern NSString *EncPLSqliteException;
 @private
     /** Path to the database file. */
     NSString *_path;
+    NSString *_tempPath;
     NSString *_password;
     
     /** Underlying sqlite database reference. */
@@ -47,8 +48,11 @@ extern NSString *EncPLSqliteException;
 
 - (id) initWithPath: (NSString*) dbPath andPassword: (NSString*) password;
 
+- (id) initWithPath: (NSString*) dbPath andPassword: (NSString*) password withTempPath: (NSString*) tempPath;
+
 - (BOOL) open;
 - (BOOL) openAndReturnError: (NSError **) error;
+- (BOOL) openAndMigrate: (NSError **) error;
 
 - (int64_t) lastInsertRowId;
 

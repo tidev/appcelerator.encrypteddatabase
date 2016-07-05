@@ -42,6 +42,22 @@
 	return db;
 }
 
+-(id)cipherUpgrade:(id)path
+{
+	ENSURE_SINGLE_ARG(path,NSString);
+	AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
+	db.password = password;
+	return [db cipherUpgrade:path];
+}
+
+-(NSNumber*)isCipherUpgradeRequired:(id)args
+{
+	ENSURE_SINGLE_ARG(args, NSString)
+	AppceleratorEncrypteddatabaseDBProxy *db = [[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil];
+	NSNumber *result = [db isCipherUpgradeRequired:args];
+	RELEASE_TO_NIL(db)
+	return result;
+}
 -(id)install:(id)args
 {
 	ENSURE_ARG_COUNT(args,2);

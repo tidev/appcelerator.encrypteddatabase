@@ -80,6 +80,9 @@ typedef enum {
     
     /** The provided SQL statement was invalid. */
     EncPLDatabaseErrorInvalidStatement = 3,
+    
+    /** cipher migrate failed */
+    EncPLDatabaseErrorCipherMigrateFailed = 4
 } EncPLDatabaseError;
 
 

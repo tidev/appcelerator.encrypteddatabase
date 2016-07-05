@@ -27,6 +27,43 @@ extends: Titanium.Database
 since: "1.0.0"
 platforms: [android,iphone,ipad]
 
+methods:
+  - name: isCipherUpgradeRequired
+    summary: Checks and returns if sqlcipher is required to be updated
+    description: |
+        This is a check to see if the database is using an older version of sqlcipher.
+        Use this to check before opening the database, so that you could prompt or inform
+        the user that it might take a while for database.open() to execute completely, since
+        calling database.open() does the updating internally, and it might take a while depending
+        on how big the database is. Returns true if required, otherwise false.
+    returns:
+        type: Boolean
+    platforms: [iphone, ipad]
+    parameters:
+      - name: name
+        summary: |
+            database name
+        type: String
+    since: "1.3.1"    
+  - name: cipherUpgrade
+    summary: Upgrades sqlcipher used in database.
+    description: |
+        This method can be used to upgrade the sqlcipher used in the database, when
+        upgrading from an existing app that uses this module from version 1.0.0 to 1.3.1.
+        Make sure the password is set before using this method.
+        Alternatively, using database.open() would also update the sqlcipher if the module
+        detects that it's using an older version. This method is optional to give developers
+        more flexibility when doing version upgrade on apps.
+    returns:
+        type: cipherUpgradeResult
+    platforms: [iphone, ipad]
+    parameters:
+      - name: name
+        summary: |
+            database name
+        type: String
+    since: "1.3.1"
+
 properties:
 
   - name: password
@@ -39,22 +76,92 @@ properties:
 examples:
   - title: Opening Encrypted Database
     example: |
-        This example demonstrates the proper technique for connecting to an encrypted database.
-
-            var encryptedDatabase = require("appcelerator.encrypteddatabase");
-            encryptedDatabase.password = "my great password";
-
-            var db = encryptedDatabase.open('mydb);
-            db.execute('CREATE TABLE IF NOT EXISTS people (name TEXT, phone_number TEXT, city TEXT)');
-            db.execute('DELETE FROM people');
-            db.execute('INSERT INTO people (name, phone_number, city) VALUES (?, ?, ?)', ['Paul', '020 7000 0000', 'London']);
-            var rows = db.execute('SELECT rowid,name,phone_number,city FROM people');
-            while (rows.isValidRow()) {
-                alert('Person ---> ROWID: ' + rows.fieldByName('rowid')
-                    + ', name:' + rows.field(1)
-                    + ', phone_number: ' + rows.fieldByName('phone_number')
-                    + ', city: ' + rows.field(3));
-                rows.next();
+        //This example demonstrates connecting to an encrypted database.
+        var dbobj = require("appcelerator.encrypteddatabase");
+        var instance = null;
+        var dataTofetch = null;
+        var win = Ti.UI.createWindow({
+            backgroundColor: 'white'
+        });
+        var indicator = Ti.UI.createActivityIndicator({
+            color: 'green',
+            font: {fontFamily:'Helvetica Neue', fontSize:26, fontWeight:'bold'},
+            message: 'Upgrading database...',
+            style: Ti.UI.ActivityIndicatorStyle.DARK,
+            top:'30%',
+            height:Ti.UI.SIZE,
+            width:Ti.UI.SIZE
+        });
+        function init() {
+            //check if method exist
+            if (dbobj.isCipherUpgradeRequired) {
+                //check if cipher upgrade required.
+                if (dbobj.isCipherUpgradeRequired('test.db')) {
+                    Ti.API.info('upgrade of database required');
+                    indicator.show();
+                    dbobj.setPassword('secret');
+                    Ti.API.info("Opening DB...");
+                    instance = dbobj.open('test.db');
+                    indicator.hide();
+                    Ti.API.info('database upgrade complete');
+                    return;
+                }
             }
-            rows.close();
-            db.close();
+            //cipher upgrade not required
+            Ti.API.info('cipher upgrade not required');     
+            dbobj.setPassword('secret');
+            Ti.API.info("Opening DB...");
+            instance = dbobj.open('test.db');
+        }
+        function setup() {
+            instance.execute("CREATE TABLE IF NOT EXISTS testtable(id integer PRIMARY KEY);");
+            instance.execute("INSERT OR IGNORE INTO testtable(id) VALUES (1);");
+        }
+        function insert(){
+            var dataToInsertHandle = instance.execute("SELECT id FROM testtable ORDER BY id DESC LIMIT 1;");
+            var dataToInsert = null;
+            if(dataToInsertHandle.isValidRow()) {
+                dataToInsert = (dataToInsertHandle.fieldByName('id') + 1);
+                dataTofetch = dataToInsert;
+            }
+            instance.execute("INSERT OR IGNORE INTO testtable(id) VALUES (" + dataToInsert + ");");
+        }
+        function fetch() {
+            var rowValue = null;
+            var rowHandle = instance.execute("SELECT * FROM testtable WHERE id=" + dataTofetch + ";");
+            if (rowHandle.isValidRow()) {
+                rowValue = rowHandle.fieldByName('id');
+            }
+            alert("Fetched Data: " + rowValue);
+        }
+        function closeDB() {
+            instance.close();
+        } 
+        win.add(indicator);
+        win.open();
+        init();
+        setup();
+        insert();
+        fetch();
+        closeDB();
+---
+name: cipherUpgradeResult
+summary: Dictionary result for the cipherUpgrade method.
+platforms: [iphone, ipad]
+
+properties:
+- name: success
+  summary: Returns true if cipher sucessfully upgraded. otherwise false.
+  type: Boolean
+
+- name: skip
+  summary: returns true if cipher upgrade not necessary. otherwise false.
+  type: Boolean
+
+- name: error
+  summary: Error message if any.
+  type: String
+
+- name: code
+  summary: Result code. 0 if success or skip. -1 if fail.
+  type: Number
