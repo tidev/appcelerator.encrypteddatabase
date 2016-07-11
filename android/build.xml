@@ -16,7 +16,6 @@
 
     <copy todir="libs">
         <fileset dir="lib">
-            <include name="armeabi/*"/>
             <include name="armeabi-v7a/*"/>
             <include name="x86/*"/>
             <exclude name="**/*.java"/>

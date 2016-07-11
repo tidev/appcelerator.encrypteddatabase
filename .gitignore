@@ -27,3 +27,7 @@ libs/
 /iphone/openssl-xcode/openssl/libcrypto.a
 /iphone/openssl-xcode/openssl/apps/openssl
 iphone/openssl-xcode/openssl/test
+/android/assets
+/android/documentation
+/android/example
+/android/LICENSE

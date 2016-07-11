@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile Modules
- * Copyright (c) 2010-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2010-2016 by Appcelerator, Inc. All Rights Reserved.
  * Proprietary and Confidential - This source code is not for redistribution
  */
 package appcelerator.encrypteddatabase;
@@ -9,7 +9,6 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
-import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiFileProxy;
 import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.util.TiConvert;
@@ -37,10 +36,6 @@ public class TiDatabaseProxy extends KrollProxy {
 		readOnly = false;
 	}
 
-	public TiDatabaseProxy(TiContext tiContext, String name, SQLiteDatabase db) {
-		this(name, db);
-	}
-
 	// readonly database
 	public TiDatabaseProxy(SQLiteDatabase db) {
 		// super(tiContext);
@@ -49,10 +44,6 @@ public class TiDatabaseProxy extends KrollProxy {
 		this.db = db;
 		statementLogging = false;
 		readOnly = true;
-	}
-
-	public TiDatabaseProxy(TiContext tiContext, SQLiteDatabase db) {
-		this(db);
 	}
 
 	@Kroll.method
