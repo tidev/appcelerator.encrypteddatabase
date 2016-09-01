@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile Modules
- * Copyright (c) 2010-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2010-2016 by Appcelerator, Inc. All Rights Reserved.
  * Proprietary and Confidential - This source code is not for redistribution
  */
 package appcelerator.encrypteddatabase;
@@ -10,7 +10,6 @@ import java.util.HashMap;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.database.Cursor;
@@ -37,10 +36,6 @@ public class TiResultSetProxy extends KrollProxy {
 		for (int i = 0; i < names.length; i++) {
 			columnNames.put(names[i].toLowerCase(), i);
 		}
-	}
-
-	public TiResultSetProxy(TiContext tiContext, Cursor rs) {
-		this(rs);
 	}
 
 	@Kroll.method
