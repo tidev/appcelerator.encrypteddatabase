@@ -1,5 +1,10 @@
 # Change Log
 <pre>
+v1.3.2  Update example code [MOD-2291]
+
+v1.3.1  iOS: Integrate cipher migrate [TIMOB-20264]
+        Android: No Changes.
+
 v1.3.0  Android: Updated SQLCipher to version 3.3.1-2 [TIMOB-19206]
         iOS: No Changes. Bumped to v1.3.0 to match Android.
 
