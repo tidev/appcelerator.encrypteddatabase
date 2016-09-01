@@ -2,11 +2,11 @@
 name: Appcelerator.EncryptedDatabase
 summary: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 description: |
-    This module exposes the same API as Titanium.Database, but it encrypts everything (even schema) using a password you specify. 
+    This module exposes the same API as Titanium.Database, but it encrypts everything (even schema) using a password you specify.
 
     ### Getting Started
 
-    -   View the [Using Titanium Modules](http://docs.appcelerator.com/titanium/latest/#!/guide/Using_Titanium_Modules) 
+    -   View the [Using Titanium Modules](http://docs.appcelerator.com/titanium/latest/#!/guide/Using_Titanium_Modules)
         document for instructions on getting started with using this module in your application.
 
     ### Accessing the Module
@@ -44,7 +44,7 @@ methods:
         summary: |
             database name
         type: String
-    since: "1.3.1"    
+    since: "1.3.1"
   - name: cipherUpgrade
     summary: Upgrades sqlcipher used in database.
     description: |
@@ -72,7 +72,7 @@ properties:
     type: String
     since: "1.0.0"
 
-  
+
 examples:
   - title: Opening Encrypted Database
     example: |
@@ -94,21 +94,23 @@ examples:
         });
         function init() {
             //check if method exist
-            if (dbobj.isCipherUpgradeRequired) {
-                //check if cipher upgrade required.
-                if (dbobj.isCipherUpgradeRequired('test.db')) {
-                    Ti.API.info('upgrade of database required');
-                    indicator.show();
-                    dbobj.setPassword('secret');
-                    Ti.API.info("Opening DB...");
-                    instance = dbobj.open('test.db');
-                    indicator.hide();
-                    Ti.API.info('database upgrade complete');
-                    return;
+            if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
+                if (dbobj.isCipherUpgradeRequired) {
+                    //check if cipher upgrade required.
+                    if (dbobj.isCipherUpgradeRequired('test.db')) {
+                        Ti.API.info('upgrade of database required');
+                        indicator.show();
+                        dbobj.setPassword('secret');
+                        Ti.API.info("Opening DB...");
+                        instance = dbobj.open('test.db');
+                        indicator.hide();
+                        Ti.API.info('database upgrade complete');
+                        return;
+                    }
                 }
             }
             //cipher upgrade not required
-            Ti.API.info('cipher upgrade not required');     
+            Ti.API.info('cipher upgrade not required');
             dbobj.setPassword('secret');
             Ti.API.info("Opening DB...");
             instance = dbobj.open('test.db');
@@ -136,7 +138,7 @@ examples:
         }
         function closeDB() {
             instance.close();
-        } 
+        }
         win.add(indicator);
         win.open();
         init();

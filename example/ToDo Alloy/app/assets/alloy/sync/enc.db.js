@@ -160,13 +160,15 @@ function Sync(method, model, opts) {
         db, sql;
 
     //cipherUpgrade if necessary
-    var cipherUpgraded = _database.cipherUpgrade(dbName);
-    if (cipherUpgraded.skip) {
-        Ti.API.info('cipher upgrade not required');
-    } else if (cipherUpgraded.success) {
-        Ti.API.info('cipher upgrade success');
-    } else {
-        Ti.API.info(cipherUpgraded.error);
+    if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
+        var cipherUpgraded = _database.cipherUpgrade(dbName);
+        if (cipherUpgraded.skip) {
+            Ti.API.info('cipher upgrade not required');
+        } else if (cipherUpgraded.success) {
+            Ti.API.info('cipher upgrade success');
+        } else {
+            Ti.API.info(cipherUpgraded.error);
+        }
     }
     switch (method) {
         case 'create':
@@ -419,15 +421,16 @@ function installDatabase(config) {
     var dbName = config.adapter.db_name;
 
     //cipherUpgrade if necessary
-    var cipherUpgraded = _database.cipherUpgrade(dbName);
-    if (cipherUpgraded.skip) {
-        Ti.API.info('cipher upgrade not required');
-    } else if (cipherUpgraded.success) {
-        Ti.API.info('cipher upgrade success');
-    } else {
-        Ti.API.info(cipherUpgraded.error);
+    if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
+        var cipherUpgraded = _database.cipherUpgrade(dbName);
+        if (cipherUpgraded.skip) {
+            Ti.API.info('cipher upgrade not required');
+        } else if (cipherUpgraded.success) {
+            Ti.API.info('cipher upgrade success');
+        } else {
+            Ti.API.info(cipherUpgraded.error);
+        }
     }
-
     // install and open the preloaded db
     Ti.API.debug('Installing sql database "' + dbFile + '" with name "' + dbName + '"');
     var db = _database.install(dbFile, dbName);
