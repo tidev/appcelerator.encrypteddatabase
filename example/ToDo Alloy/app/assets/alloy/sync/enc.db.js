@@ -160,7 +160,7 @@ function Sync(method, model, opts) {
         db, sql;
 
     //cipherUpgrade if necessary
-	if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
+    if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
         var cipherUpgraded = _database.cipherUpgrade(dbName);
         if (cipherUpgraded.skip) {
             Ti.API.info('cipher upgrade not required');
@@ -421,7 +421,7 @@ function installDatabase(config) {
     var dbName = config.adapter.db_name;
 
     //cipherUpgrade if necessary
-	if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
+    if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
         var cipherUpgraded = _database.cipherUpgrade(dbName);
         if (cipherUpgraded.skip) {
             Ti.API.info('cipher upgrade not required');
