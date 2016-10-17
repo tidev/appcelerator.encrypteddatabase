@@ -17,7 +17,7 @@ exports.init = init;
 function init(logger, config, cli, appc) {
 	cli.on('build.ios.xcodeproject', {
 		pre: function(data) {
-			logger.info('Rearranging sqlite3.dynlib for proper SQLCipher usage ...');
+			logger.info('Rearranging sqlite3.dylib for proper SQLCipher usage ...');
 						
 			var PBXNativeTarget = null;
 			var PBXNativeTargetUUID = null;
@@ -62,8 +62,9 @@ function init(logger, config, cli, appc) {
 			for (var i = 0; i <  files.length; i++) {
 				var obj = files[i];
 				
-				// Find the affected object
-				if (obj.comment == sqliteLibrary + ' in Frameworks') {
+				// Find the affected object and only replace it when
+				// it's not already the last one (recrurring builds)
+				if (obj.comment == sqliteLibrary + ' in Frameworks' && i != files.length - 1) {
 					// Remove it from it's initial position
 					files.splice(i, 1);
 					
