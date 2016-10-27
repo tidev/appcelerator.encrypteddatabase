@@ -35,7 +35,7 @@ function init(logger, config, cli, appc) {
 			var PBXProjectUUID = PBXProject[hash.project.rootObject];
 						
 			// Get the targets by using the project UUID
-			targets = objects['PBXProject'][PBXProjectUUID]['targets'];
+			targets = PBXProjectUUID['targets'];
 			
 			// Loop all targets to find the target we need
 			for (var i = 0; i < targets.length; i++) {
@@ -44,10 +44,10 @@ function init(logger, config, cli, appc) {
 					break;
 				}
 			}
-
+			
 			// Get the build phases related to this target
 			buildPhases = PBXNativeTarget['buildPhases'];
-	
+				
 			// Get the UUID of the target
 			for (var i = 0; i < buildPhases.length; i++) {
 				if (buildPhases[i].comment == 'Frameworks') {
@@ -55,10 +55,10 @@ function init(logger, config, cli, appc) {
 					break;
 				}
 			}
-									
+												
 			// Assign the target UUID to get the frameworks of the target
 			files = PBXFrameworksBuildPhase[PBXNativeTargetUUID]['files'];
-						
+									
 			for (var i = 0; i <  files.length; i++) {
 				var obj = files[i];
 				
@@ -73,9 +73,9 @@ function init(logger, config, cli, appc) {
 					break;
 				}
 			}
-			
+						
 			// Re-assign the re-arranged list of frameworks
-			data.args[0].hash.project.objects.PBXFrameworksBuildPhase.PBXNativeTargetUUID.files = files;			
+			data.args[0].hash.project.objects.PBXFrameworksBuildPhase[PBXNativeTargetUUID].files = files;			
 		}
 	});
 }
