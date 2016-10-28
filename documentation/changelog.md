@@ -1,5 +1,8 @@
 # Change Log
 <pre>
+v1.3.3  Android: no changes
+        iOS: Fix SQLCipher for iOS 10+ [MOD-2299] v2.0.2
+
 v1.3.2  Update example code [MOD-2291] v2.0.1
 
 v1.3.1  iOS: Integrate cipher migrate [TIMOB-20264] v2.0.0
