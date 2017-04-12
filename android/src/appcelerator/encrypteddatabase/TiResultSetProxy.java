@@ -16,6 +16,7 @@ import android.database.Cursor;
 import net.sqlcipher.CrossProcessCursorWrapper;
 import net.sqlcipher.SQLException;
 import android.os.Build;
+import org.appcelerator.titanium.TiBlob;
 
 @Kroll.proxy(parentModule = EncrypteddatabaseModule.class)
 public class TiResultSetProxy extends KrollProxy {
@@ -103,6 +104,8 @@ public class TiResultSetProxy extends KrollProxy {
 					result = cursor.getInt(index);
 				} else if (columnType == android.database.Cursor.FIELD_TYPE_NULL) {
 					result = null;
+				} else if (columnType == android.database.Cursor.FIELD_TYPE_BLOB) {
+					result = TiBlob.blobFromData(cursor.getBlob(index));
 				} else {
 					fromString = true;
 				}
