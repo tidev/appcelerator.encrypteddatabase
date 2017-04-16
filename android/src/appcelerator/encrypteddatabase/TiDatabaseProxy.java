@@ -59,100 +59,100 @@ public class TiDatabaseProxy extends KrollProxy {
 
 
 	@Kroll.method
-		public TiResultSetProxy execute(String sql, Object... args)
-		{
-			// Handle the cases where an array is passed containing the SQL query arguments.
-			// Otherwise use the variable argument list for the SQL query.
-			Object[] sqlArgs;
-			if (args != null && args.length == 1 && args[0] instanceof Object[]) {
-				sqlArgs = (Object[]) args[0];
-			} else {
-				sqlArgs = args;
-			}
+	public TiResultSetProxy execute(String sql, Object... args)
+	{
+		// Handle the cases where an array is passed containing the SQL query arguments.
+		// Otherwise use the variable argument list for the SQL query.
+		Object[] sqlArgs;
+		if (args != null && args.length == 1 && args[0] instanceof Object[]) {
+			sqlArgs = (Object[]) args[0];
+		} else {
+			sqlArgs = args;
+		}
 
-			if (statementLogging) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("Executing SQL: ").append(sql).append("\n  Args: [ ");
-				boolean needsComma = false;
+		if (statementLogging) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Executing SQL: ").append(sql).append("\n  Args: [ ");
+			boolean needsComma = false;
 
-				for (Object s : sqlArgs) {
-					if (needsComma) {
-						sb.append(", \"");
-					} else {
-						sb.append(" \"");
-						needsComma = true;
-					}
-					sb.append(TiConvert.toString(s)).append("\"");
+			for (Object s : sqlArgs) {
+				if (needsComma) {
+					sb.append(", \"");
+				} else {
+					sb.append(" \"");
+					needsComma = true;
 				}
-				sb.append(" ]");
+				sb.append(TiConvert.toString(s)).append("\"");
 			}
+			sb.append(" ]");
+		}
 
-			TiResultSetProxy rs = null;
-			Cursor c = null;
-			try {
-				String lcSql = sql.toLowerCase().trim();
-				// You must use execSQL unless you are expecting a resultset, changes aren't committed
-				// if you don't. Just expecting them on select or pragma may be enough, but
-				// it may need additional tuning. The better solution would be to expose
-				// both types of queries through the Titanium API.
-				if (lcSql.startsWith("select") || (lcSql.startsWith("pragma") && !lcSql.contains("="))) {
-					String[] selectArgs = null;
-					if (sqlArgs != null) {
-						selectArgs = new String[sqlArgs.length];
-						for (int i = 0; i < sqlArgs.length; i++) {
-							selectArgs[i] = TiConvert.toString(sqlArgs[i]);
-						}
+		TiResultSetProxy rs = null;
+		Cursor c = null;
+		try {
+			String lcSql = sql.toLowerCase().trim();
+			// You must use execSQL unless you are expecting a resultset, changes aren't committed
+			// if you don't. Just expecting them on select or pragma may be enough, but
+			// it may need additional tuning. The better solution would be to expose
+			// both types of queries through the Titanium API.
+			if (lcSql.startsWith("select") || (lcSql.startsWith("pragma") && !lcSql.contains("="))) {
+				String[] selectArgs = null;
+				if (sqlArgs != null) {
+					selectArgs = new String[sqlArgs.length];
+					for (int i = 0; i < sqlArgs.length; i++) {
+						selectArgs[i] = TiConvert.toString(sqlArgs[i]);
 					}
-					c = db.rawQuery(sql, selectArgs);
-		 			if (c != null) {
-						// Most non-SELECT statements won't actually return data, but some such as
-						// PRAGMA do. If there are no results, just return null.
-						// Thanks to brion for working through the logic, based off of commit
-						// https://github.com/brion/titanium_mobile/commit/8d3251fca69e10df6a96a2a9ae513159494d17c3
-						if (c.getColumnCount() > 0) {
-							rs = new TiResultSetProxy(c);
-							if (rs.isValidRow()) {
-								rs.next(); // Position on first row if we have data.
-							}
-						} else {
-							c.close();
-							c = null;
-							rs = null;
+				}
+				c = db.rawQuery(sql, selectArgs);
+	 			if (c != null) {
+					// Most non-SELECT statements won't actually return data, but some such as
+					// PRAGMA do. If there are no results, just return null.
+					// Thanks to brion for working through the logic, based off of commit
+					// https://github.com/brion/titanium_mobile/commit/8d3251fca69e10df6a96a2a9ae513159494d17c3
+					if (c.getColumnCount() > 0) {
+						rs = new TiResultSetProxy(c);
+						if (rs.isValidRow()) {
+							rs.next(); // Position on first row if we have data.
 						}
 					} else {
-						// Leaving for historical purposes, but walking through several different
-						// types of statements never hit this branch. (create, drop, select, pragma)
-						rs = new TiResultSetProxy(null); // because iPhone does it this way.
+						c.close();
+						c = null;
+						rs = null;
 					}
 				} else {
-					Object[] newArgs = null;
-					if (sqlArgs != null) {
-						newArgs = new Object[sqlArgs.length];
-						for (int i = 0; i < sqlArgs.length; i++) {
-							if (sqlArgs[i] instanceof TiBlob) {
-								newArgs[i] = ((TiBlob) sqlArgs[i]).getBytes();
-							} else {
-								newArgs[i] = TiConvert.toString(sqlArgs[i]);
-							}
+					// Leaving for historical purposes, but walking through several different
+					// types of statements never hit this branch. (create, drop, select, pragma)
+					rs = new TiResultSetProxy(null); // because iPhone does it this way.
+				}
+			} else {
+				Object[] newArgs = null;
+				if (sqlArgs != null) {
+					newArgs = new Object[sqlArgs.length];
+					for (int i = 0; i < sqlArgs.length; i++) {
+						if (sqlArgs[i] instanceof TiBlob) {
+							newArgs[i] = ((TiBlob) sqlArgs[i]).getBytes();
+						} else {
+							newArgs[i] = TiConvert.toString(sqlArgs[i]);
 						}
 					}
-					db.execSQL(sql, newArgs);
 				}
-			} catch (SQLException e) {
-				String msg = "Error executing sql: " + e.getMessage();
-
-				if (c != null) {
-					try {
-						c.close();
-					} catch (SQLException e2) {
-						// Ignore
-					}
-				}
-				throw e;
+				db.execSQL(sql, newArgs);
 			}
+		} catch (SQLException e) {
+			String msg = "Error executing sql: " + e.getMessage();
 
-			return rs;
+			if (c != null) {
+				try {
+					c.close();
+				} catch (SQLException e2) {
+					// Ignore
+				}
+			}
+			throw e;
 		}
+
+		return rs;
+	}
 
 	@Kroll.getProperty
 	@Kroll.method
