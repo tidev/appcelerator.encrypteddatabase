@@ -70,12 +70,12 @@ public class TiDatabaseProxy extends KrollProxy {
 				sqlArgs = args;
 			}
 
-			if(statementLogging) {
+			if (statementLogging) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("Executing SQL: ").append(sql).append("\n  Args: [ ");
 				boolean needsComma = false;
 
-				for(Object s : sqlArgs) {
+				for (Object s : sqlArgs) {
 					if (needsComma) {
 						sb.append(", \"");
 					} else {
