@@ -72,12 +72,12 @@ def package_modules(args):
     print
     print 'Packaged modules into ' + tgtfile
 
-def select_module(srcfolder, modname, platform, modlist):
+def select_module(srcfolder, modname, platform, modlist, platformIdentifier):
     version = ""
     subfolder = ""
     if platform == 'android':
         subfolder = 'dist'
-    prefix = os.path.join(srcfolder, platform, subfolder, modname + "-" + platform + "-")
+    prefix = os.path.join(srcfolder, platform, subfolder, modname + "-" + platformIdentifier + "-")
     for filename in glob.glob(prefix + "*"):
         modlist.append(filename)
         version = filename.split("-")[2].replace(".zip","")
@@ -111,15 +111,13 @@ def select_modules(args):
     modname = get_required(args,'modname')
     modlist = get_required(args,'modlist')
     if type(platform) == types.NoneType:
-        select_module(project_dir, modname, 'iphone', modlist)
-        select_module(project_dir, modname, 'android', modlist)
-        select_module(project_dir, modname, 'mobileweb', modlist)
-        select_module(project_dir, modname, 'commonjs', modlist)
+        select_module(project_dir, modname, 'ios', modlist, 'iphone')
+        select_module(project_dir, modname, 'android', modlist, 'android')
     elif type(platform) == types.ListType:
         for osname in platform:
-            select_module(project_dir, modname, osname, modlist)
+            select_module(project_dir, modname, osname, modlist, 'iphone' if osname == 'ios' else osname) # FIXME: Remove when iOS module build compiles to "<module-id>-<module-version>-ios.zip"
     else:
-        select_module(project_dir, modname, platform, modlist)
+        select_module(project_dir, modname, platform, modlist, 'iphone' if platform == 'ios' else platform) # FIXME: Remove when iOS module build compiles to "<module-id>-<module-version>-ios.zip"
 
 def slurp_args(args):
     config = {"args": []}
@@ -145,8 +143,8 @@ def help(args=[],suppress_banner=False):
     print
 
     if len(args)==0:
-        print "Usage: --platform=p1,p2     platform: iphone, android, mobileweb, commonjs"
-        print "Example: ./package.py --platform=iphone,android,mobileweb"
+        print "Usage: --platform=p1,p2     platform: ios, android"
+        print "Example: ./package.py --platform=ios,android"
     print
     sys.exit(-1)
 
