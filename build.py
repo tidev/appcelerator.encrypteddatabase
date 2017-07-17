@@ -42,8 +42,6 @@ def clean_ant_module(platform):
     if os.path.exists(build_path):
         shutil.rmtree(build_path)
     ant_path = os.path.join(os.getcwd(), platform)
-    retcode = fork(ant_path, 'ant clean', False)
-    retcode = fork(ant_path, 'ant cleanlinks', False)
     zip_file = os.path.join(os.getcwd(), platform, 'dist', '*.zip')
     for fl in glob.glob(zip_file):
         os.remove(fl)
@@ -62,18 +60,12 @@ def main(args):
 
     if cmd == 'build':
         packages = []
-        if os.path.exists('iphone'):
-            create_module('iphone', './build.py')
+        if os.path.exists('ios'):
+            create_module('ios', 'appc ti build -p ios --build-only')
             packages.append('iphone')
 
-        if os.path.exists('mobileweb'):
-            create_module('mobileweb', './build.py')
-            packages.append('mobileweb')
-
         if os.path.exists('android'):
-            if not os.path.exists(os.path.join(os.getcwd(), 'android', 'build.properties')):
-                die("*** build.properties file is missing -- copy build.properties.example ***")
-            create_module('android', 'ant')
+            create_module('android', 'appc ti build -p android --build-only')
             packages.append('android')
 
         packages_cmd = './package.py --platform=' + string.join(packages, ',')
@@ -83,14 +75,8 @@ def main(args):
         if os.path.exists('iphone'):
             clean_build_module('iphone')
 
-        if os.path.exists('mobileweb'):
-            clean_build_module('mobileweb')
-
         if os.path.exists('android'):
             clean_ant_module('android')
-
-        if os.path.exists('commonjs'):
-            clean_build_module('commonjs')
 
         zip_file = os.path.join(os.getcwd(), '*.zip')
         for fl in glob.glob(zip_file):
