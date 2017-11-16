@@ -9,6 +9,7 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiFileProxy;
 import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.util.TiConvert;
@@ -88,30 +89,25 @@ public class TiDatabaseProxy extends KrollProxy {
 
 		TiResultSetProxy rs = null;
 		Cursor c = null;
-		String[] newArgs = null;
-		if (sqlArgs != null) {
-			newArgs = new String[sqlArgs.length];
-			for (int i = 0; i < sqlArgs.length; i++) {
-				newArgs[i] = TiConvert.toString(sqlArgs[i]);
-			}
-		}
 		try {
 			String lcSql = sql.toLowerCase().trim();
-			// You must use execSQL unless you are expecting a resultset,
-			// changes aren't committed
-			// if you don't. Just expecting them on select or pragma may be
-			// enough, but
-			// it may need additional tuning. The better solution would be to
-			// expose
+			// You must use execSQL unless you are expecting a resultset, changes aren't committed
+			// if you don't. Just expecting them on select or pragma may be enough, but
+			// it may need additional tuning. The better solution would be to expose
 			// both types of queries through the Titanium API.
-			if (lcSql.startsWith("select") || lcSql.startsWith("pragma")) {
-				c = db.rawQuery(sql, newArgs);
+			if (lcSql.startsWith("select") || (lcSql.startsWith("pragma") && !lcSql.contains("="))) {
+				String[] selectArgs = null;
+				if (sqlArgs != null) {
+					selectArgs = new String[sqlArgs.length];
+					for (int i = 0; i < sqlArgs.length; i++) {
+						selectArgs[i] = TiConvert.toString(sqlArgs[i]);
+					}
+				}
+				c = db.rawQuery(sql, selectArgs);
 				if (c != null) {
-					// Most non-SELECT statements won't actually return data,
-					// but some such as
+					// Most non-SELECT statements won't actually return data, but some such as
 					// PRAGMA do. If there are no results, just return null.
-					// Thanks to brion for working through the logic, based off
-					// of commit
+					// Thanks to brion for working through the logic, based off of commit
 					// https://github.com/brion/titanium_mobile/commit/8d3251fca69e10df6a96a2a9ae513159494d17c3
 					if (c.getColumnCount() > 0) {
 						rs = new TiResultSetProxy(c);
@@ -124,19 +120,27 @@ public class TiDatabaseProxy extends KrollProxy {
 						rs = null;
 					}
 				} else {
-					// Leaving for historical purposes, but walking through
-					// several different
-					// types of statements never hit this branch. (create, drop,
-					// select, pragma)
-					rs = new TiResultSetProxy(null); // because iPhone does it
-														// this way.
+					// Leaving for historical purposes, but walking through several different
+					// types of statements never hit this branch. (create, drop, select, pragma)
+					rs = new TiResultSetProxy(null); // because iPhone does it this way.
 				}
 			} else {
+				Object[] newArgs = null;
+				if (sqlArgs != null) {
+					newArgs = new Object[sqlArgs.length];
+					for (int i = 0; i < sqlArgs.length; i++) {
+						if (sqlArgs[i] instanceof TiBlob) {
+							newArgs[i] = ((TiBlob) sqlArgs[i]).getBytes();
+						} else {
+							newArgs[i] = TiConvert.toString(sqlArgs[i]);
+						}
+					}
+				}
 				db.execSQL(sql, newArgs);
 			}
 		} catch (SQLException e) {
 			String msg = "Error executing sql: " + e.getMessage();
-			Log.e(TAG, msg, e);
+
 			if (c != null) {
 				try {
 					c.close();

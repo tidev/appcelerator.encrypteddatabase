@@ -47,6 +47,7 @@ public class EncrypteddatabaseModule extends KrollModule {
 
 	public EncrypteddatabaseModule() {
 		super();
+		SQLiteDatabase.loadLibs(TiApplication.getAppCurrentActivity());
 	}
 
 	@Kroll.getProperty @Kroll.method
@@ -61,7 +62,6 @@ public class EncrypteddatabaseModule extends KrollModule {
 
 	@Kroll.method
 	public TiDatabaseProxy open(Object file) {
-		SQLiteDatabase.loadLibs(TiApplication.getAppCurrentActivity());
 		TiDatabaseProxy dbp = null;
 
 		try {

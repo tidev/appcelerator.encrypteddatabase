@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.database.Cursor;
@@ -103,6 +104,8 @@ public class TiResultSetProxy extends KrollProxy {
 					result = cursor.getInt(index);
 				} else if (columnType == android.database.Cursor.FIELD_TYPE_NULL) {
 					result = null;
+				} else if (columnType == android.database.Cursor.FIELD_TYPE_BLOB) {
+					result = TiBlob.blobFromData(cursor.getBlob(index));
 				} else {
 					fromString = true;
 				}
