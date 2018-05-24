@@ -96,11 +96,11 @@ BOOL isNewDatabase = NO;
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSString* versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
+    NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
     BOOL versionExists = [fm fileExistsAtPath:versionFile];
     NSString *currentVersion = @"2.0.3";
     if (versionExists) {
-    	NSString* version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
+    	NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
     	if ([version isEqualToString:currentVersion]) {
     		return YES;
     	}
