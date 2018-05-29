@@ -98,20 +98,23 @@ BOOL isNewDatabase = NO;
     NSFileManager *fm = [NSFileManager defaultManager];
     NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
     BOOL versionExists = [fm fileExistsAtPath:versionFile];
-    NSString *currentVersion = @"2.0.3";
+    NSString *currentVersion = @"3.0.2";
+    BOOL migrate = YES;
+
     if (versionExists) {
-    	NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
-    	if ([version isEqualToString:currentVersion]) {
-    		return YES;
-    	}
-    	return NO;
-    } else {
-    	[fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+        NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
+        if ([version isEqualToString:currentVersion]) {
+            migrate = NO;
+        }
+    }
+    if (migrate) {
+        [fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
     }
     if (isNewDatabase) {
-        return NO;
+        migrate = NO;
     }
-    return YES;
+
+    return migrate;
 }
 
 -(NSNumber*)isCipherUpgradeRequired:(id)args
