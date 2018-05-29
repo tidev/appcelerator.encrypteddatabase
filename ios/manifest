@@ -2,13 +2,13 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 2.0.3
+version: 2.0.4
 apiversion: 2
 architectures: armv7 arm64 i386 x86_64
 description: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 author: Dawson Toth
 license: Appcelerator Commercial License
-copyright: Copyright (c) 2013-2016 by Appcelerator, Inc.
+copyright: Copyright (c) 2013-2018 by Axway, Inc.
 
 
 # these should not be edited
