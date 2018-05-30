@@ -17,7 +17,7 @@ exports.init = init;
 function init(logger, config, cli, appc) {
 	cli.on('build.ios.xcodeproject', {
 		pre: function(data) {
-			logger.info('Rearranging sqlite3.dylib for proper SQLCipher usage...');
+			logger.info('Remove sqlite3.dylib...');
 						
 			let PBXNativeTarget = null;
 			let PBXNativeTargetUUID = null;
@@ -59,9 +59,6 @@ function init(logger, config, cli, appc) {
 			// Assign the target UUID to get the frameworks of the target
 			files = PBXFrameworksBuildPhase[PBXNativeTargetUUID]['files'];
 
-			let sqliteObj = null; // 'sqlite3.dylib' entry
-			let moduleIndex = null; // index of 'libappcelerator.encrypteddatabase.a'
-
 			// Find sqlite entry
 			for (let i = 0; i <  files.length; i++) {
 				let obj = files[i];
@@ -69,21 +66,8 @@ function init(logger, config, cli, appc) {
 				// Find the sqlite entry
 				if (obj.comment == sqliteLibrary + ' in Frameworks') {
 
-					// Remove entry so we can re-place it later
+					// Remove entry, our module already contains sqlite3
 					files.splice(i, 1);
-
-					sqliteObj = obj;
-					break;
-				}
-			}
-
-			// Find our module library index
-			for (let i = 0; i <  files.length; i++) {
-				let obj = files[i];
-				
-				// Place sqlite entry above our module library entry
-				if (obj.comment == `lib${exports.id}.a in Frameworks`) {
-					files.splice(i, 0, sqliteObj);
 					break;
 				}
 			}

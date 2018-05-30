@@ -173,6 +173,16 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
+    char *errMsg;
+    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_use_hmac = OFF;" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorUnknown
+                description: NSLocalizedString(@"Cipher: failed to disable hmac cipher.", @"")
+                queryString: nil];
+        return NO;
+    }
     
     /* Success */
     return YES;

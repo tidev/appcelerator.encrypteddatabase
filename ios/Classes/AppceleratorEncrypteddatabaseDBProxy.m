@@ -98,14 +98,20 @@ BOOL isNewDatabase = NO;
     NSFileManager *fm = [NSFileManager defaultManager];
     NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
     BOOL versionExists = [fm fileExistsAtPath:versionFile];
-    NSString *currentVersion = @"3.0.2";
+    NSString *currentVersion = @"2.0.4";
     BOOL migrate = YES;
 
     if (versionExists) {
+    	migrate = NO;
+
+        /*
+        // TODO: check version number
+        // for some reason migration is broken with latest sqlcipher, cannot attach to database?
         NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
         if ([version isEqualToString:currentVersion]) {
             migrate = NO;
         }
+        */
     }
     if (migrate) {
         [fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
