@@ -102,16 +102,10 @@ BOOL isNewDatabase = NO;
     BOOL migrate = YES;
 
     if (versionExists) {
-    	migrate = NO;
-
-        /*
-        // TODO: check version number
-        // for some reason migration is broken with latest sqlcipher, cannot attach to database?
         NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
         if ([version isEqualToString:currentVersion]) {
             migrate = NO;
         }
-        */
     }
     if (migrate) {
         [fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
