@@ -259,7 +259,7 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
             [self close];
             BOOL result = [self openAndMigrate:error];
             if (result) {
-                NSLog(@"[WARN] Migrated unencrypted database");
+                NSLog(@"[DEBUG] Migrated database successfully");
             }
             _encrypted = YES;
             return result;
