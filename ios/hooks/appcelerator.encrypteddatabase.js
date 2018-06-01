@@ -17,28 +17,28 @@ exports.init = init;
 function init(logger, config, cli, appc) {
 	cli.on('build.ios.xcodeproject', {
 		pre: function(data) {
-			logger.info('Rearranging sqlite3.dylib for proper SQLCipher usage ...');
+			logger.info('Remove sqlite3.dylib...');
 						
-			var PBXNativeTarget = null;
-			var PBXNativeTargetUUID = null;
-			var buildPhases = null;
-			var files = null;
-			var targets = null;
+			let PBXNativeTarget = null;
+			let PBXNativeTargetUUID = null;
+			let buildPhases = null;
+			let files = null;
+			let targets = null;
 
-			var appName = this.tiapp.name;
-			var sqliteLibrary = 'libsqlite3.dylib';
-			var hash = data.args[0].hash;
-			var objects = hash.project.objects;
+			const appName = this.tiapp.name;
+			const sqliteLibrary = 'libsqlite3.dylib';
+			const hash = data.args[0].hash;
+			const objects = hash.project.objects;
 
-			var PBXProject = objects['PBXProject'];
-			var PBXFrameworksBuildPhase = objects['PBXFrameworksBuildPhase'];
-			var PBXProjectUUID = PBXProject[hash.project.rootObject];
+			const PBXProject = objects['PBXProject'];
+			const PBXFrameworksBuildPhase = objects['PBXFrameworksBuildPhase'];
+			const PBXProjectUUID = PBXProject[hash.project.rootObject];
 						
 			// Get the targets by using the project UUID
 			targets = PBXProjectUUID['targets'];
 			
 			// Loop all targets to find the target we need
-			for (var i = 0; i < targets.length; i++) {
+			for (let i = 0; i < targets.length; i++) {
 				if (targets[i].comment == '"' + appName + '"') {
 					PBXNativeTarget = objects['PBXNativeTarget'][targets[i].value];
 					break;
@@ -49,7 +49,7 @@ function init(logger, config, cli, appc) {
 			buildPhases = PBXNativeTarget['buildPhases'];
 				
 			// Get the UUID of the target
-			for (var i = 0; i < buildPhases.length; i++) {
+			for (let i = 0; i < buildPhases.length; i++) {
 				if (buildPhases[i].comment == 'Frameworks') {
 					PBXNativeTargetUUID = buildPhases[i].value;
 					break;
@@ -58,24 +58,22 @@ function init(logger, config, cli, appc) {
 												
 			// Assign the target UUID to get the frameworks of the target
 			files = PBXFrameworksBuildPhase[PBXNativeTargetUUID]['files'];
-									
-			for (var i = 0; i <  files.length; i++) {
-				var obj = files[i];
+
+			// Find sqlite entry
+			for (let i = 0; i <  files.length; i++) {
+				let obj = files[i];
 				
-				// Find the affected object and only replace it when
-				// it's not already the last one (recrurring builds)
-				if (obj.comment == sqliteLibrary + ' in Frameworks' && i != files.length - 1) {
-					// Remove it from it's initial position
+				// Find the sqlite entry
+				if (obj.comment == sqliteLibrary + ' in Frameworks') {
+
+					// Remove entry, our module already contains sqlite3
 					files.splice(i, 1);
-					
-					// Insert it as the last element again
-					files.push(obj);
 					break;
 				}
 			}
 						
 			// Re-assign the re-arranged list of frameworks
-			data.args[0].hash.project.objects.PBXFrameworksBuildPhase[PBXNativeTargetUUID].files = files;			
+			data.args[0].hash.project.objects.PBXFrameworksBuildPhase[PBXNativeTargetUUID].files = files;	
 		}
 	});
 }

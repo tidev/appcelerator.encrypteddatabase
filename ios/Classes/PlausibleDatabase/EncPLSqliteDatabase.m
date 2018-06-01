@@ -82,6 +82,7 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     }
 
     _password = [password retain];
+    _encrypted = YES;
     
     return self;
 }
@@ -162,7 +163,11 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     else {
         key = [_password UTF8String];
     }
-    sqlite3_key(_sqlite, key, strlen(key));
+    if (_encrypted) {
+        sqlite3_key(_sqlite, key, strlen(key));
+    } else {
+        sqlite3_key(_sqlite, NULL, 0);
+    }
     /* Set a busy timeout */
     err = sqlite3_busy_timeout(_sqlite, SQLITE_BUSY_TIMEOUT);
     if (err != SQLITE_OK) {
@@ -208,7 +213,11 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     else {
         key = [_password UTF8String];
     }
-    sqlite3_key(_sqlite, key, strlen(key));
+    if (_encrypted) {
+        sqlite3_key(_sqlite, key, strlen(key));
+    } else {
+        sqlite3_key(_sqlite, NULL, 0);
+    }
     /* Set a busy timeout */
     err = sqlite3_busy_timeout(_sqlite, SQLITE_BUSY_TIMEOUT);
     if (err != SQLITE_OK) {
@@ -220,6 +229,16 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     char *errMsg;
+    //disable hmac cipher for backwards compatibility
+    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_use_hmac = OFF;" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate: failed to disable hmac cipher.", @"")
+                queryString: nil];
+        return NO;
+    }
     //prepare existing database for migration
     err = sqlite3_exec(_sqlite, [@"PRAGMA kdf_iter = 4000;" UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
@@ -231,14 +250,28 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     //attach new database
-    err = sqlite3_exec(_sqlite, [[NSString stringWithFormat:@"ATTACH DATABASE '%s' AS newdb KEY '%@';",[_tempPath fileSystemRepresentation],_password] UTF8String], NULL, NULL, &errMsg);
+    err = sqlite3_exec(_sqlite, [[NSString stringWithFormat:@"ATTACH DATABASE '%s' AS newdb KEY '%s';",[_tempPath fileSystemRepresentation], key] UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
-        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
-        [self populateError: error
-              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
-                description: NSLocalizedString(@"Cipher migrate: failed to attach new database.", @"")
-                queryString: nil];
-        return NO;
+        // previous database may not be encrypted
+	// TODO: Replace the string-check with a SQLite check
+        if ([[NSString stringWithUTF8String:errMsg] isEqualToString:@"file is encrypted or is not a database"] && _encrypted) {
+            _encrypted = NO;
+            [self close];
+            BOOL result = [self openAndMigrate:error];
+            if (result) {
+                NSLog(@"[DEBUG] Migrated database successfully");
+            }
+            _encrypted = YES;
+            return result;
+        }
+        if (err != SQLITE_OK) {
+            NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+            [self populateError: error
+                  withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                    description: NSLocalizedString(@"Cipher migrate: failed to attach new database.", @"")
+                    queryString: nil];
+            return NO;
+        }
     }
     //sqlcipher_export
     err = sqlite3_exec(_sqlite, [@"SELECT sqlcipher_export('newdb');" UTF8String], NULL, NULL, &errMsg);

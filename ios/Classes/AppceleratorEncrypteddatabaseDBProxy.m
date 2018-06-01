@@ -96,20 +96,25 @@ BOOL isNewDatabase = NO;
     NSString *rootDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString *dbPath = [rootDir stringByAppendingPathComponent:@"Private Documents"];
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSString* versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
-    BOOL version131Exists = [fm fileExistsAtPath:versionFile];
-    if (version131Exists) {
-        //already installed using 1.3.1 and above.
-        return NO;
+    NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
+    BOOL versionExists = [fm fileExistsAtPath:versionFile];
+    NSString *currentVersion = @"2.0.4";
+    BOOL migrate = YES;
+
+    if (versionExists) {
+        NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
+        if ([version isEqualToString:currentVersion]) {
+            migrate = NO;
+        }
     }
-    //create version file for 1.3.1 and above.
-    NSString *version = @"1.3.1";
-    [fm createFileAtPath:versionFile contents:[version dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+    if (migrate) {
+        [fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+    }
     if (isNewDatabase) {
-        return NO;
+        migrate = NO;
     }
-    //this app is upgraded from an older module. Needs migration.
-    return YES;
+
+    return migrate;
 }
 
 -(NSNumber*)isCipherUpgradeRequired:(id)args

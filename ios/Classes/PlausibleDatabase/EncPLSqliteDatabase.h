@@ -39,6 +39,7 @@ extern NSString *EncPLSqliteException;
     NSString *_path;
     NSString *_tempPath;
     NSString *_password;
+    BOOL _encrypted;
     
     /** Underlying sqlite database reference. */
     sqlite3 *_sqlite;
