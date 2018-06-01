@@ -82,7 +82,7 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     }
 
     _password = [password retain];
-    _encrypted = true;
+    _encrypted = YES;
     
     return self;
 }
@@ -253,14 +253,15 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     err = sqlite3_exec(_sqlite, [[NSString stringWithFormat:@"ATTACH DATABASE '%s' AS newdb KEY '%s';",[_tempPath fileSystemRepresentation], key] UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         // previous database may not be encrypted
+	// TODO: Replace the string-check with a SQLite check
         if ([[NSString stringWithUTF8String:errMsg] isEqualToString:@"file is encrypted or is not a database"] && _encrypted) {
-            _encrypted = false;
+            _encrypted = NO;
             [self close];
             BOOL result = [self openAndMigrate:error];
             if (result) {
                 NSLog(@"[WARN] Migrated unencrypted database");
             }
-            _encrypted = true;
+            _encrypted = YES;
             return result;
         }
         if (err != SQLITE_OK) {
