@@ -124,6 +124,10 @@ static const char* sqlcipher_ltc_get_provider_name(void *ctx) {
   return "libtomcrypt";
 }
 
+static const char* sqlcipher_ltc_get_provider_version(void *ctx) {
+  return SCRYPT;
+}
+
 static int sqlcipher_ltc_random(void *ctx, void *buffer, int length) {
 #ifndef SQLCIPHER_LTC_NO_MUTEX_RAND
   sqlite3_mutex_enter(ltc_rand_mutex);
@@ -141,9 +145,10 @@ static int sqlcipher_ltc_hmac(void *ctx, unsigned char *hmac_key, int key_sz, un
   unsigned long outlen = key_sz;
 
   hash_idx = find_hash("sha1");
+  if(in == NULL) return SQLITE_ERROR;
   if((rc = hmac_init(&hmac, hash_idx, hmac_key, key_sz)) != CRYPT_OK) return SQLITE_ERROR;
   if((rc = hmac_process(&hmac, in, in_sz)) != CRYPT_OK) return SQLITE_ERROR;
-  if((rc = hmac_process(&hmac, in2, in2_sz)) != CRYPT_OK) return SQLITE_ERROR;
+  if(in2 != NULL && (rc = hmac_process(&hmac, in2, in2_sz)) != CRYPT_OK) return SQLITE_ERROR;
   if((rc = hmac_done(&hmac, out, &outlen)) != CRYPT_OK) return SQLITE_ERROR;
   return SQLITE_OK;
 }
@@ -251,6 +256,7 @@ int sqlcipher_ltc_setup(sqlcipher_provider *p) {
   p->ctx_free = sqlcipher_ltc_ctx_free;
   p->add_random = sqlcipher_ltc_add_random;
   p->fips_status = sqlcipher_ltc_fips_status;
+  p->get_provider_version = sqlcipher_ltc_get_provider_version;
   return SQLITE_OK;
 }
 

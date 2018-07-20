@@ -35,6 +35,7 @@
 #include "sqlcipher.h"
 #include <CommonCrypto/CommonCrypto.h>
 #include <Security/SecRandom.h>
+#include <CoreFoundation/CoreFoundation.h>
 
 static int sqlcipher_cc_add_random(void *ctx, void *buffer, int length) {
   return SQLITE_OK;
@@ -49,11 +50,26 @@ static const char* sqlcipher_cc_get_provider_name(void *ctx) {
   return "commoncrypto";
 }
 
+static const char* sqlcipher_cc_get_provider_version(void *ctx) {
+#if TARGET_OS_MAC
+  CFTypeRef version;
+  CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.security"));
+  if(bundle == NULL) {
+    return "unknown";
+  }
+  version = CFBundleGetValueForInfoDictionaryKey(bundle, CFSTR("CFBundleShortVersionString"));
+  return CFStringGetCStringPtr(version, kCFStringEncodingUTF8);
+#else
+  return "unknown";
+#endif
+}
+
 static int sqlcipher_cc_hmac(void *ctx, unsigned char *hmac_key, int key_sz, unsigned char *in, int in_sz, unsigned char *in2, int in2_sz, unsigned char *out) {
   CCHmacContext hmac_context;
+  if(in == NULL) return SQLITE_ERROR;
   CCHmacInit(&hmac_context, kCCHmacAlgSHA1, hmac_key, key_sz);
   CCHmacUpdate(&hmac_context, in, in_sz);
-  CCHmacUpdate(&hmac_context, in2, in2_sz);
+  if(in2 != NULL) CCHmacUpdate(&hmac_context, in2, in2_sz);
   CCHmacFinal(&hmac_context, out);
   return SQLITE_OK; 
 }
@@ -75,7 +91,7 @@ static int sqlcipher_cc_cipher(void *ctx, int mode, unsigned char *key, int key_
   CCCryptorFinal(cryptor, out, in_sz - csz, &tmp_csz);
   csz += tmp_csz;
   CCCryptorRelease(cryptor);
-  assert(size == csz);
+  assert(in_sz == csz);
 
   return SQLITE_OK; 
 }
@@ -142,6 +158,7 @@ int sqlcipher_cc_setup(sqlcipher_provider *p) {
   p->ctx_free = sqlcipher_cc_ctx_free;
   p->add_random = sqlcipher_cc_add_random;
   p->fips_status = sqlcipher_cc_fips_status;
+  p->get_provider_version = sqlcipher_cc_get_provider_version;
   return SQLITE_OK;
 }
 

@@ -60,8 +60,8 @@ foreach s {
     open close access getcwd stat fstat ftruncate
     fcntl read pread write pwrite fchmod fallocate
     pread64 pwrite64 unlink openDirectory mkdir rmdir 
-    statvfs fchown umask mmap munmap mremap
-    getpagesize
+    statvfs fchown geteuid umask mmap munmap mremap
+    getpagesize readlink lstat
 } {
   if {[test_syscall exists $s]} {lappend syscall_list $s}
 }
@@ -218,8 +218,8 @@ proc create_db_file {nByte} {
 
 foreach {nByte res} {
   1      {0 {}}
-  2      {1 {file is encrypted or is not a database}}
-  3      {1 {file is encrypted or is not a database}}
+  2      {1 {file is not a database}}
+  3      {1 {file is not a database}}
 } {
   do_test 7.$nByte {
     create_db_file $nByte

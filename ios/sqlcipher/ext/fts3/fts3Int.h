@@ -18,6 +18,12 @@
 # define NDEBUG 1
 #endif
 
+/* FTS3/FTS4 require virtual tables */
+#ifdef SQLITE_OMIT_VIRTUALTABLE
+# undef SQLITE_ENABLE_FTS3
+# undef SQLITE_ENABLE_FTS4
+#endif
+
 /*
 ** FTS4 is really an extension for FTS3.  It is enabled using the
 ** SQLITE_ENABLE_FTS3 macro.  But to avoid confusion we also all
@@ -197,6 +203,8 @@ typedef struct Fts3DeferredToken Fts3DeferredToken;
 typedef struct Fts3SegReader Fts3SegReader;
 typedef struct Fts3MultiSegReader Fts3MultiSegReader;
 
+typedef struct MatchinfoBuffer MatchinfoBuffer;
+
 /*
 ** A connection to a fulltext index is an instance of the following
 ** structure. The xCreate and xConnect methods create an instance
@@ -222,6 +230,7 @@ struct Fts3Table {
   ** statements is run and reset within a single virtual table API call. 
   */
   sqlite3_stmt *aStmt[40];
+  sqlite3_stmt *pSeekStmt;        /* Cache for fts3CursorSeekStmt() */
 
   char *zReadExprlist;
   char *zWriteExprlist;
@@ -262,6 +271,7 @@ struct Fts3Table {
   int nPendingData;               /* Current bytes of pending data */
   sqlite_int64 iPrevDocid;        /* Docid of most recently inserted document */
   int iPrevLangid;                /* Langid of recently inserted document */
+  int bPrevDelete;                /* True if last operation was a delete */
 
 #if defined(SQLITE_DEBUG) || defined(SQLITE_COVERAGE_TEST)
   /* State variables used for validating that the transaction control
@@ -290,6 +300,7 @@ struct Fts3Cursor {
   i16 eSearch;                    /* Search strategy (see below) */
   u8 isEof;                       /* True if at End Of Results */
   u8 isRequireSeek;               /* True if must seek pStmt to %_content row */
+  u8 bSeekStmt;                   /* True if pStmt is a seek */
   sqlite3_stmt *pStmt;            /* Prepared statement in use by the cursor */
   Fts3Expr *pExpr;                /* Parsed MATCH query string */
   int iLangid;                    /* Language being queried for */
@@ -306,9 +317,7 @@ struct Fts3Cursor {
   i64 iMinDocid;                  /* Minimum docid to return */
   i64 iMaxDocid;                  /* Maximum docid to return */
   int isMatchinfoNeeded;          /* True when aMatchinfo[] needs filling in */
-  u32 *aMatchinfo;                /* Information about most recent match */
-  int nMatchinfo;                 /* Number of elements in aMatchinfo[] */
-  char *zMatchinfo;               /* Matchinfo specification */
+  MatchinfoBuffer *pMIBuffer;     /* Buffer for matchinfo data */
 };
 
 #define FTS3_EVAL_FILTER    0
@@ -428,7 +437,9 @@ struct Fts3Expr {
   u8 bStart;                 /* True if iDocid is valid */
   u8 bDeferred;              /* True if this expression is entirely deferred */
 
-  u32 *aMI;
+  /* The following are used by the fts3_snippet.c module. */
+  int iPhrase;               /* Index of this phrase in matchinfo() results */
+  u32 *aMI;                  /* See above */
 };
 
 /*
@@ -549,6 +560,7 @@ void sqlite3Fts3DoclistPrev(int,char*,int,char**,sqlite3_int64*,int*,u8*);
 int sqlite3Fts3EvalPhraseStats(Fts3Cursor *, Fts3Expr *, u32 *);
 int sqlite3Fts3FirstFilter(sqlite3_int64, char *, int, char *);
 void sqlite3Fts3CreateStatTable(int*, Fts3Table*);
+int sqlite3Fts3EvalTestDeferred(Fts3Cursor *pCsr, int *pRc);
 
 /* fts3_tokenizer.c */
 const char *sqlite3Fts3NextToken(const char *, int *);
@@ -564,6 +576,7 @@ void sqlite3Fts3Snippet(sqlite3_context *, Fts3Cursor *, const char *,
   const char *, const char *, int, int
 );
 void sqlite3Fts3Matchinfo(sqlite3_context *, Fts3Cursor *, const char *);
+void sqlite3Fts3MIBufferFree(MatchinfoBuffer *p);
 
 /* fts3_expr.c */
 int sqlite3Fts3ExprParse(sqlite3_tokenizer *, int,
