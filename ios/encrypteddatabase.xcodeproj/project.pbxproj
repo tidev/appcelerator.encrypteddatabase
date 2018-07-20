@@ -69,6 +69,34 @@
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = sqlcipher;
 		};
+		DB6B938A2101EAA100A8A300 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 826E0A811B70B64E00FA8E82 /* sqlcipher.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C0041981BFC382400ED2AD5;
+			remoteInfo = "SQLCipher iOS";
+		};
+		DB6B938C2101EAA100A8A300 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 826E0A811B70B64E00FA8E82 /* sqlcipher.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C0041B11BFC3B2200ED2AD5;
+			remoteInfo = "SQLCipher OSX";
+		};
+		DB6B938E2101EAA100A8A300 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 826E0A811B70B64E00FA8E82 /* sqlcipher.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C0041C31BFC3CC000ED2AD5;
+			remoteInfo = "SQLCipher tvOS";
+		};
+		DB6B93902101EAA100A8A300 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 826E0A811B70B64E00FA8E82 /* sqlcipher.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C0041D61BFC3E2500ED2AD5;
+			remoteInfo = "SQLCipher watchOS";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -169,6 +197,10 @@
 		826E0A821B70B64E00FA8E82 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				DB6B938B2101EAA100A8A300 /* SQLCipher.framework */,
+				DB6B938D2101EAA100A8A300 /* SQLCipher.framework */,
+				DB6B938F2101EAA100A8A300 /* SQLCipher.framework */,
+				DB6B93912101EAA100A8A300 /* SQLCipher.framework */,
 				826E0A871B70B64E00FA8E82 /* libsqlcipher.a */,
 			);
 			name = Products;
@@ -278,6 +310,34 @@
 			fileType = archive.ar;
 			path = libsqlcipher.a;
 			remoteRef = 826E0A861B70B64E00FA8E82 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB6B938B2101EAA100A8A300 /* SQLCipher.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLCipher.framework;
+			remoteRef = DB6B938A2101EAA100A8A300 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB6B938D2101EAA100A8A300 /* SQLCipher.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLCipher.framework;
+			remoteRef = DB6B938C2101EAA100A8A300 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB6B938F2101EAA100A8A300 /* SQLCipher.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLCipher.framework;
+			remoteRef = DB6B938E2101EAA100A8A300 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB6B93912101EAA100A8A300 /* SQLCipher.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLCipher.framework;
+			remoteRef = DB6B93902101EAA100A8A300 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -507,7 +567,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "Build & test";
-				VALID_ARCHS = "armv7 armv7s i386";
+				VALID_ARCHS = "arm64 armv7 armv7s";
 			};
 			name = Debug;
 		};
@@ -518,7 +578,7 @@
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				PRODUCT_NAME = "Build & test";
-				VALID_ARCHS = "armv7 armv7s i386";
+				VALID_ARCHS = "arm64 armv7 armv7s";
 				ZERO_LINK = NO;
 			};
 			name = Release;
