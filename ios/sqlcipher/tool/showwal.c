@@ -7,8 +7,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#define ISDIGIT(X)  isdigit((unsigned char)(X))
+#define ISPRINT(X)  isprint((unsigned char)(X))
+
 #if !defined(_MSC_VER)
 #include <unistd.h>
+#include <sys/types.h>
 #else
 #include <io.h>
 #endif
@@ -159,7 +163,7 @@ static void print_byte_range(
       if( i+j>nByte ){
         fprintf(stdout, " ");
       }else{
-        fprintf(stdout,"%c", isprint(aData[i+j]) ? aData[i+j] : '.');
+        fprintf(stdout,"%c", ISPRINT(aData[i+j]) ? aData[i+j] : '.');
       }
     }
     fprintf(stdout,"\n");
@@ -550,7 +554,7 @@ int main(int argc, char **argv){
         print_wal_header(0);
         continue;
       }
-      if( !isdigit(argv[i][0]) ){
+      if( !ISDIGIT(argv[i][0]) ){
         fprintf(stderr, "%s: unknown option: [%s]\n", argv[0], argv[i]);
         continue;
       }
@@ -576,6 +580,14 @@ int main(int argc, char **argv){
         decode_btree_page(a, iStart, hdrSize, zLeft+1);
         free(a);
         continue;
+#if !defined(_MSC_VER)
+      }else if( zLeft && strcmp(zLeft,"truncate")==0 ){
+        /* Frame number followed by "truncate" truncates the WAL file
+        ** after that frame */
+        off_t newSize = 32 + iStart*(pagesize+24);
+        truncate(argv[1], newSize);
+        continue;
+#endif
       }else{
         iEnd = iStart;
       }

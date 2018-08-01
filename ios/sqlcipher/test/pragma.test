@@ -83,8 +83,8 @@ delete_file test.db test.db-journal
 delete_file test3.db test3.db-journal
 sqlite3 db test.db; set DB [sqlite3_connection_pointer db]
 
-# EVIDENCE-OF: R-24197-42751 PRAGMA database.cache_size; PRAGMA
-# database.cache_size = pages; PRAGMA database.cache_size = -kibibytes;
+# EVIDENCE-OF: R-13861-56665 PRAGMA schema.cache_size; PRAGMA
+# schema.cache_size = pages; PRAGMA schema.cache_size = -kibibytes;
 # Query or change the suggested maximum number of database disk pages
 # that SQLite will hold in memory at once per open database file.
 #
@@ -186,7 +186,15 @@ do_test pragma-1.10 {
     PRAGMA synchronous;
   }
 } {123 123 1}
-do_test pragma-1.11 {
+do_test pragma-1.11.1 {
+  execsql {
+    PRAGMA synchronous=EXTRA;
+    PRAGMA cache_size;
+    PRAGMA default_cache_size;
+    PRAGMA synchronous;
+  }
+} {123 123 3}
+do_test pragma-1.11.2 {
   execsql {
     PRAGMA synchronous=FULL;
     PRAGMA cache_size;
@@ -224,14 +232,20 @@ do_test pragma-1.14.1 {
     PRAGMA synchronous=4;
     PRAGMA synchronous;
   }
-} {0}
+} {4}
 do_test pragma-1.14.2 {
   execsql {
     PRAGMA synchronous=3;
     PRAGMA synchronous;
   }
-} {0}
+} {3}
 do_test pragma-1.14.3 {
+  execsql {
+    PRAGMA synchronous=8;
+    PRAGMA synchronous;
+  }
+} {0}
+do_test pragma-1.14.4 {
   execsql {
     PRAGMA synchronous=10;
     PRAGMA synchronous;
@@ -614,10 +628,10 @@ ifcapable tempdb&&attach {
 }
 do_test pragma-6.2 {
   execsql {
-    CREATE TABLE t2(a,b,c);
+    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c "TYPE_Z");
     pragma table_info(t2)
   }
-} {0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0}
+} {0 a TYPE_X 0 {} 0 1 b TYPE_Y 0 {} 0 2 c TYPE_Z 0 {} 0}
 do_test pragma-6.2.1 {
   execsql {
     pragma table_info;
@@ -697,8 +711,8 @@ do_test pragma-6.5.1b {
 } {0 0 a 1 1 b 2 -1 {}}
 
 
-# EVIDENCE-OF: R-62725-03366 PRAGMA database.index_info(index-name);
-# This pragma returns one row for each key column in the named index.
+# EVIDENCE-OF: R-29448-60346 PRAGMA schema.index_info(index-name); This
+# pragma returns one row for each key column in the named index.
 #
 # (The first column of output from PRAGMA index_info is...)
 # EVIDENCE-OF: R-34186-52914 The rank of the column within the index. (0
@@ -784,9 +798,9 @@ do_test pragma-6.8 {
 # Miscellaneous tests
 #
 ifcapable schema_pragmas {
-# EVIDENCE-OF: R-63500-32024 PRAGMA database.index_list(table-name);
-# This pragma returns one row for each index associated with the given
-# table.
+# EVIDENCE-OF: R-64103-17776 PRAGMA schema.index_list(table-name); This
+# pragma returns one row for each index associated with the given table.
+#
 do_test pragma-7.1.1 {
   # Make sure a pragma knows to read the schema if it needs to
   db close
@@ -1069,7 +1083,20 @@ do_test pragma-8.2.15 {
 # "memory" or "disk" as appropriate.
 #
 proc check_temp_store {} {
-  db eval {CREATE TEMP TABLE IF NOT EXISTS a(b)}
+  db eval {
+    PRAGMA temp.cache_size = 1;
+    CREATE TEMP TABLE IF NOT EXISTS a(b);
+    DELETE FROM a;
+    INSERT INTO a VALUES(randomblob(1000));
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+    INSERT INTO a SELECT * FROM a;
+  }
   db eval {PRAGMA database_list} {
     if {$name=="temp"} {
       set bt [btree_from_db db 1]
@@ -1379,8 +1406,8 @@ ifcapable pager_pragmas {
   forcedelete test.db
   sqlite3 db test.db
  
-  # EVIDENCE-OF: R-13905-26312 PRAGMA database.page_count; Return the
-  # total number of pages in the database file.
+  # EVIDENCE-OF: R-15672-33611 PRAGMA schema.page_count; Return the total
+  # number of pages in the database file.
   #
   do_test pragma-14.1 {
     execsql { pragma auto_vacuum = 0 }
@@ -1669,7 +1696,7 @@ testvfs tvfs
 sqlite3 db test.db -vfs tvfs
 do_test pragma-19.1 {
   catchsql {PRAGMA error}
-} {1 {SQL logic error or missing database}}
+} {1 {SQL logic error}}
 do_test pragma-19.2 {
   catchsql {PRAGMA error='This is the error message'}
 } {1 {This is the error message}}
@@ -1727,73 +1754,75 @@ forcedelete data_dir
 } ;# endif windows
 
 database_may_be_corrupt
+if {![nonzero_reserved_bytes]} {
 
-do_test 21.1 {
-  # Create a corrupt database in testerr.db. And a non-corrupt at test.db.
-  #
-  db close
-  forcedelete test.db
-  sqlite3 db test.db
-  execsql { 
-    PRAGMA page_size = 1024;
-    PRAGMA auto_vacuum = 0;
-    CREATE TABLE t1(a PRIMARY KEY, b);
-    INSERT INTO t1 VALUES(1, 1);
-  }
-  for {set i 0} {$i < 10} {incr i} {
-    execsql { INSERT INTO t1 SELECT a + (1 << $i), b + (1 << $i) FROM t1 }
-  }
-  db close
-  forcecopy test.db testerr.db
-  hexio_write testerr.db 15000 [string repeat 55 100]
-} {100}
-
-set mainerr {*** in database main ***
+  do_test 21.1 {
+    # Create a corrupt database in testerr.db. And a non-corrupt at test.db.
+    #
+    db close
+    forcedelete test.db
+    sqlite3 db test.db
+    execsql { 
+      PRAGMA page_size = 1024;
+      PRAGMA auto_vacuum = 0;
+      CREATE TABLE t1(a PRIMARY KEY, b);
+      INSERT INTO t1 VALUES(1, 1);
+    }
+    for {set i 0} {$i < 10} {incr i} {
+      execsql { INSERT INTO t1 SELECT a + (1 << $i), b + (1 << $i) FROM t1 }
+    }
+    db close
+    forcecopy test.db testerr.db
+    hexio_write testerr.db 15000 [string repeat 55 100]
+  } {100}
+  
+  set mainerr {*** in database main ***
 Multiple uses for byte 672 of page 15}
-set auxerr {*** in database aux ***
+  set auxerr {*** in database aux ***
 Multiple uses for byte 672 of page 15}
-
-set mainerr {/{\*\*\* in database main \*\*\*
+  
+  set mainerr {/{\*\*\* in database main \*\*\*
 Multiple uses for byte 672 of page 15}.*/}
-set auxerr {/{\*\*\* in database aux \*\*\*
+  set auxerr {/{\*\*\* in database aux \*\*\*
 Multiple uses for byte 672 of page 15}.*/}
-
-do_test 22.2 {
-  catch { db close }
-  sqlite3 db testerr.db
-  execsql { PRAGMA integrity_check }
-} $mainerr
-
-do_test 22.3.1 {
-  catch { db close }
-  sqlite3 db test.db
-  execsql { 
-    ATTACH 'testerr.db' AS 'aux';
-    PRAGMA integrity_check;
-  }
-} $auxerr
-do_test 22.3.2 {
-  execsql { PRAGMA main.integrity_check; }
-} {ok}
-do_test 22.3.3 {
-  execsql { PRAGMA aux.integrity_check; }
-} $auxerr
-
-do_test 22.4.1 {
-  catch { db close }
-  sqlite3 db testerr.db
-  execsql { 
-    ATTACH 'test.db' AS 'aux';
-    PRAGMA integrity_check;
-  }
-} $mainerr
-do_test 22.4.2 {
-  execsql { PRAGMA main.integrity_check; }
-} $mainerr
-do_test 22.4.3 {
-  execsql { PRAGMA aux.integrity_check; }
-} {ok}
-
+  
+  do_test 22.2 {
+    catch { db close }
+    sqlite3 db testerr.db
+    execsql { PRAGMA integrity_check }
+  } $mainerr
+  
+  do_test 22.3.1 {
+    catch { db close }
+    sqlite3 db test.db
+    execsql { 
+      ATTACH 'testerr.db' AS 'aux';
+      PRAGMA integrity_check;
+    }
+  } $auxerr
+  do_test 22.3.2 {
+    execsql { PRAGMA main.integrity_check; }
+  } {ok}
+  do_test 22.3.3 {
+    execsql { PRAGMA aux.integrity_check; }
+  } $auxerr
+  
+  do_test 22.4.1 {
+    catch { db close }
+    sqlite3 db testerr.db
+    execsql { 
+      ATTACH 'test.db' AS 'aux';
+      PRAGMA integrity_check;
+    }
+  } $mainerr
+  do_test 22.4.2 {
+    execsql { PRAGMA main.integrity_check; }
+  } $mainerr
+  do_test 22.4.3 {
+    execsql { PRAGMA aux.integrity_check; }
+  } {ok}
+}
+  
 db close
 forcedelete test.db test.db-wal test.db-journal
 sqlite3 db test.db
@@ -1817,8 +1846,8 @@ do_test 23.2a {
   db2 eval {SELECT cid, name, '|' FROM out ORDER BY seqno}
 } {2 c | 3 d | 1 b |}
 
-# EVIDENCE-OF: R-44874-46325 PRAGMA database.index_xinfo(index-name);
-# This pragma returns information about every column in an index.
+# EVIDENCE-OF: R-56143-29319 PRAGMA schema.index_xinfo(index-name); This
+# pragma returns information about every column in an index.
 #
 # EVIDENCE-OF: R-45970-35618 Unlike this index_info pragma, this pragma
 # returns information about every column in the index, not just the key
@@ -1861,9 +1890,8 @@ do_test 23.2d {
   db2 eval {PRAGMA index_xinfo(i2x)}
 } {0 3 d 0 nocase 1 1 2 c 1 BINARY 1 2 -1 {} 0 BINARY 0}
 
-# EVIDENCE-OF: R-63500-32024 PRAGMA database.index_list(table-name);
-# This pragma returns one row for each index associated with the given
-# table.
+# EVIDENCE-OF: R-64103-17776 PRAGMA schema.index_list(table-name); This
+# pragma returns one row for each index associated with the given table.
 #
 # (The first column of output from PRAGMA index_list is...)
 # EVIDENCE-OF: R-02753-24748 A sequence number assigned to each index

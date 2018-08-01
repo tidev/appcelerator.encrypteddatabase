@@ -78,9 +78,29 @@ static int winMutexNotheld(sqlite3_mutex *p){
 #endif
 
 /*
+** Try to provide a memory barrier operation, needed for initialization
+** and also for the xShmBarrier method of the VFS in cases when SQLite is
+** compiled without mutexes (SQLITE_THREADSAFE=0).
+*/
+void sqlite3MemoryBarrier(void){
+#if defined(SQLITE_MEMORY_BARRIER)
+  SQLITE_MEMORY_BARRIER;
+#elif defined(__GNUC__)
+  __sync_synchronize();
+#elif MSVC_VERSION>=1300
+  _ReadWriteBarrier();
+#elif defined(MemoryBarrier)
+  MemoryBarrier();
+#endif
+}
+
+/*
 ** Initialize and deinitialize the mutex subsystem.
 */
 static sqlite3_mutex winMutex_staticMutexes[] = {
+  SQLITE3_MUTEX_INITIALIZER,
+  SQLITE3_MUTEX_INITIALIZER,
+  SQLITE3_MUTEX_INITIALIZER,
   SQLITE3_MUTEX_INITIALIZER,
   SQLITE3_MUTEX_INITIALIZER,
   SQLITE3_MUTEX_INITIALIZER,
@@ -160,6 +180,9 @@ static int winMutexEnd(void){
 ** <li>  SQLITE_MUTEX_STATIC_APP1
 ** <li>  SQLITE_MUTEX_STATIC_APP2
 ** <li>  SQLITE_MUTEX_STATIC_APP3
+** <li>  SQLITE_MUTEX_STATIC_VFS1
+** <li>  SQLITE_MUTEX_STATIC_VFS2
+** <li>  SQLITE_MUTEX_STATIC_VFS3
 ** </ul>
 **
 ** The first two constants cause sqlite3_mutex_alloc() to create
@@ -275,8 +298,8 @@ static void winMutexEnter(sqlite3_mutex *p){
   p->owner = tid;
   p->nRef++;
   if( p->trace ){
-    OSTRACE(("ENTER-MUTEX tid=%lu, mutex=%p (%d), nRef=%d\n",
-             tid, p, p->trace, p->nRef));
+    OSTRACE(("ENTER-MUTEX tid=%lu, mutex(%d)=%p (%d), nRef=%d\n",
+             tid, p->id, p, p->trace, p->nRef));
   }
 #endif
 }
@@ -318,8 +341,8 @@ static int winMutexTry(sqlite3_mutex *p){
 #endif
 #ifdef SQLITE_DEBUG
   if( p->trace ){
-    OSTRACE(("TRY-MUTEX tid=%lu, mutex=%p (%d), owner=%lu, nRef=%d, rc=%s\n",
-             tid, p, p->trace, p->owner, p->nRef, sqlite3ErrName(rc)));
+    OSTRACE(("TRY-MUTEX tid=%lu, mutex(%d)=%p (%d), owner=%lu, nRef=%d, rc=%s\n",
+             tid, p->id, p, p->trace, p->owner, p->nRef, sqlite3ErrName(rc)));
   }
 #endif
   return rc;
@@ -347,8 +370,8 @@ static void winMutexLeave(sqlite3_mutex *p){
   LeaveCriticalSection(&p->mutex);
 #ifdef SQLITE_DEBUG
   if( p->trace ){
-    OSTRACE(("LEAVE-MUTEX tid=%lu, mutex=%p (%d), nRef=%d\n",
-             tid, p, p->trace, p->nRef));
+    OSTRACE(("LEAVE-MUTEX tid=%lu, mutex(%d)=%p (%d), nRef=%d\n",
+             tid, p->id, p, p->trace, p->nRef));
   }
 #endif
 }

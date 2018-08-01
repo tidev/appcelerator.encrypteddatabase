@@ -309,11 +309,15 @@ do_test check-4.8 {
     PRAGMA ignore_check_constraints=ON;
     UPDATE t4 SET x=0, y=1;
     SELECT * FROM t4;
+    PRAGMA integrity_check;
   }
-} {0 1}
+} {0 1 ok}
+do_execsql_test check-4.8.1 {
+  PRAGMA ignore_check_constraints=OFF;
+  PRAGMA integrity_check;
+} {{CHECK constraint failed in t4}}
 do_test check-4.9 {
   catchsql {
-    PRAGMA ignore_check_constraints=OFF;
     UPDATE t4 SET x=0, y=2;
   }
 } {1 {CHECK constraint failed: t4}}
@@ -458,5 +462,35 @@ do_execsql_test 8.1 {
   CREATE TABLE t810(a, CHECK( main.t810.a>0 ));
   CREATE TABLE t811(b, CHECK( xyzzy.t811.b BETWEEN 5 AND 10 ));
 } {}
+
+# Make sure check constraints involving the ROWID are not ignored
+#
+do_execsql_test 9.1 {
+  CREATE TABLE t1(
+    a INTEGER PRIMARY KEY,
+    b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK( b>a ),
+    c INTEGER NOT NULL CONSTRAINT 'c-check' CHECK( c>rowid*2 ),
+    d INTEGER NOT NULL CONSTRAINT 'd-check' CHECK( d BETWEEN b AND c )
+  );
+  INSERT INTO t1(a,b,c,d) VALUES(1,2,4,3),(2,4,6,5),(3,10,30,20);
+} {}
+do_catchsql_test 9.2 {
+  UPDATE t1 SET b=0 WHERE a=1;
+} {1 {CHECK constraint failed: b-check}}
+do_catchsql_test 9.3 {
+  UPDATE t1 SET c=a*2 WHERE a=1;
+} {1 {CHECK constraint failed: c-check}}
+
+# Integrity check on a VIEW with columns.
+#
+db close
+db2 close
+forcedelete test.db
+sqlite3 db test.db
+do_execsql_test 10.1 {
+  CREATE TABLE t1(x);
+  CREATE VIEW v1(y) AS SELECT x FROM t1;
+  PRAGMA integrity_check;
+} {ok}
 
 finish_test

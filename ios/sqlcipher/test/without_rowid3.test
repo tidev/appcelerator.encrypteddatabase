@@ -1031,7 +1031,7 @@ ifcapable altertable {
       PRAGMA foreign_keys = off;
       ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;
       PRAGMA foreign_keys = on;
-      SELECT sql FROM sqlite_temp_master WHERE name='t2';
+      SELECT sql FROM temp.sqlite_master WHERE name='t2';
     }
   } {{CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)}}
 
@@ -1064,7 +1064,7 @@ ifcapable altertable {
   ]
   do_test without_rowid3-14.2tmp.2.2 {
     execsql { ALTER TABLE t1 RENAME TO t4 }
-    execsql { SELECT sql FROM sqlite_temp_master WHERE type = 'table'}
+    execsql { SELECT sql FROM temp.sqlite_master WHERE type = 'table'}
   } [list \
     {CREATE TABLE "t4"(a PRIMARY KEY, b REFERENCES "t4") WITHOUT rowid}      \
     {CREATE TABLE t2(a PRIMARY KEY, b REFERENCES "t4", c REFERENCES t2)
@@ -2080,5 +2080,21 @@ do_test without_rowid3-ce7c13.1.6 {
     UPDATE tce73 set a = 101 where a = 100;
   }
 } {1 {FOREIGN KEY constraint failed}}
+
+# Confirm that changes() works on WITHOUT ROWID tables that use the
+# xfer optimization.
+#
+db close
+sqlite3 db :memory:
+do_execsql_test without_rowid3-30.1 {
+  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;
+  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;
+  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);
+  SELECT changes();
+} {3}
+do_execsql_test without_rowid3-30.2 {
+  INSERT INTO t2 SELECT * FROM t1;
+  SELECT changes();
+} {3}
 
 finish_test

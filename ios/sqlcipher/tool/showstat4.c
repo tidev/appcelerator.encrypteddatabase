@@ -9,6 +9,8 @@
 #include <ctype.h>
 #include "sqlite3.h"
 
+#define ISPRINT(X)  isprint((unsigned char)(X))
+
 typedef sqlite3_int64 i64;   /* 64-bit signed integer type */
 
 
@@ -116,8 +118,11 @@ int main(int argc, char **argv){
         }
         if( iVal==7 ){
           double r;
+          char *z;
           memcpy(&r, &v, sizeof(r));
-          printf("%s%#g", zSep, r);
+          z = sqlite3_mprintf("%s%!.15g", zSep, r);
+          printf("%s", z);
+          sqlite3_free(z);
         }else{
           printf("%s%lld", zSep, v);
         }
@@ -128,11 +133,11 @@ int main(int argc, char **argv){
         }
         printf("'");
       }else{
-        printf("%s\"", zSep);
+        printf("%s'", zSep);
         for(j=0; j<sz; j++){
           char c = (char)aSample[y+j];
-          if( isprint(c) ){
-            if( c=='"' || c=='\\' ) putchar('\\');
+          if( ISPRINT(c) ){
+            if( c=='\'' || c=='\\' ) putchar('\\');
             putchar(c);
           }else if( c=='\n' ){
             printf("\\n");
@@ -144,7 +149,7 @@ int main(int argc, char **argv){
             printf("\\%03o", c);
           }
         }
-        printf("\"");
+        printf("'");
       }
       zSep = ",";
       y += sz;

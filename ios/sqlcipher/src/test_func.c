@@ -13,14 +13,17 @@
 ** implements new SQL functions used by the test scripts.
 */
 #include "sqlite3.h"
-#include "tcl.h"
+#if defined(INCLUDE_SQLITE_TCL_H)
+#  include "sqlite_tcl.h"
+#else
+#  include "tcl.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
 #include "sqliteInt.h"
 #include "vdbeInt.h"
-
 
 /*
 ** Allocate nByte bytes of space using sqlite3_malloc(). If the
@@ -152,7 +155,7 @@ static void test_destructor_count(
 ** arguments. It returns the text value returned by the sqlite3_errmsg16()
 ** API function.
 */
-#ifndef SQLITE_OMIT_BUILTIN_TEST
+#ifndef SQLITE_UNTESTABLE
 void sqlite3BeginBenignMalloc(void);
 void sqlite3EndBenignMalloc(void);
 #else
@@ -166,9 +169,7 @@ static void test_agg_errmsg16_final(sqlite3_context *ctx){
   const void *z;
   sqlite3 * db = sqlite3_context_db_handle(ctx);
   sqlite3_aggregate_context(ctx, 2048);
-  sqlite3BeginBenignMalloc();
   z = sqlite3_errmsg16(db);
-  sqlite3EndBenignMalloc();
   sqlite3_result_text16(ctx, z, -1, SQLITE_TRANSIENT);
 #endif
 }
@@ -462,7 +463,7 @@ static void real2hex(
 }
 
 /*
-** tclcmd: test_extract(record, field)
+**     test_extract(record, field)
 **
 ** This function implements an SQL user-function that accepts a blob
 ** containing a formatted database record as the first argument. The
@@ -509,7 +510,7 @@ static void test_extract(
 }
 
 /*
-** tclcmd: test_decode(record)
+**      test_decode(record)
 **
 ** This function implements an SQL user-function that accepts a blob
 ** containing a formatted database record as its only argument. It returns
@@ -601,6 +602,8 @@ static void test_decode(
 }
 
 /*
+**       test_zeroblob(N)
+**
 ** The implementation of scalar SQL function "test_zeroblob()". This is
 ** similar to the built-in zeroblob() function, except that it does not
 ** check that the integer parameter is within range before passing it
@@ -615,7 +618,36 @@ static void test_zeroblob(
   sqlite3_result_zeroblob(context, nZero);
 }
 
-static int registerTestFunctions(sqlite3 *db){
+/*         test_getsubtype(V)
+**
+** Return the subtype for value V.
+*/
+static void test_getsubtype(
+  sqlite3_context *context,
+  int argc,
+  sqlite3_value **argv
+){
+  sqlite3_result_int(context, (int)sqlite3_value_subtype(argv[0]));
+}
+
+/*         test_setsubtype(V, T)
+**
+** Return the value V with its subtype changed to T
+*/
+static void test_setsubtype(
+  sqlite3_context *context,
+  int argc,
+  sqlite3_value **argv
+){
+  sqlite3_result_value(context, argv[0]);
+  sqlite3_result_subtype(context, (unsigned int)sqlite3_value_int(argv[1]));
+}
+
+static int registerTestFunctions(
+  sqlite3 *db,
+  char **pzErrMsg,
+  const sqlite3_api_routines *pThunk
+){
   static const struct {
      char *zName;
      signed char nArg;
@@ -641,6 +673,8 @@ static int registerTestFunctions(sqlite3 *db){
     { "test_decode",           1, SQLITE_UTF8, test_decode},
     { "test_extract",          2, SQLITE_UTF8, test_extract},
     { "test_zeroblob",  1, SQLITE_UTF8|SQLITE_DETERMINISTIC, test_zeroblob},
+    { "test_getsubtype",       1, SQLITE_UTF8, test_getsubtype},
+    { "test_setsubtype",       2, SQLITE_UTF8, test_setsubtype},
   };
   int i;
 
@@ -662,16 +696,16 @@ static int registerTestFunctions(sqlite3 *db){
 ** the standard set of test functions to be loaded into each new
 ** database connection.
 */
-static int autoinstall_test_funcs(
+static int SQLITE_TCLAPI autoinstall_test_funcs(
   void * clientData,
   Tcl_Interp *interp,
   int objc,
   Tcl_Obj *CONST objv[]
 ){
-  extern int Md5_Register(sqlite3*);
-  int rc = sqlite3_auto_extension((void*)registerTestFunctions);
+  extern int Md5_Register(sqlite3 *, char **, const sqlite3_api_routines *);
+  int rc = sqlite3_auto_extension((void(*)(void))registerTestFunctions);
   if( rc==SQLITE_OK ){
-    rc = sqlite3_auto_extension((void*)Md5_Register);
+    rc = sqlite3_auto_extension((void(*)(void))Md5_Register);
   }
   Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
   return TCL_OK;
@@ -690,7 +724,7 @@ static void tFinal(sqlite3_context *a){}
 ** Make various calls to sqlite3_create_function that do not have valid
 ** parameters.  Verify that the error condition is detected and reported.
 */
-static int abuse_create_function(
+static int SQLITE_TCLAPI abuse_create_function(
   void * clientData,
   Tcl_Interp *interp,
   int objc,
@@ -756,6 +790,7 @@ abuse_err:
   return TCL_ERROR;
 }
 
+
 /*
 ** Register commands with the TCL interpreter.
 */
@@ -768,13 +803,13 @@ int Sqlitetest_func_Init(Tcl_Interp *interp){
      { "abuse_create_function",         abuse_create_function  },
   };
   int i;
-  extern int Md5_Register(sqlite3*);
+  extern int Md5_Register(sqlite3 *, char **, const sqlite3_api_routines *);
 
   for(i=0; i<sizeof(aObjCmd)/sizeof(aObjCmd[0]); i++){
     Tcl_CreateObjCommand(interp, aObjCmd[i].zName, aObjCmd[i].xProc, 0, 0);
   }
   sqlite3_initialize();
-  sqlite3_auto_extension((void*)registerTestFunctions);
-  sqlite3_auto_extension((void*)Md5_Register);
+  sqlite3_auto_extension((void(*)(void))registerTestFunctions);
+  sqlite3_auto_extension((void(*)(void))Md5_Register);
   return TCL_OK;
 }

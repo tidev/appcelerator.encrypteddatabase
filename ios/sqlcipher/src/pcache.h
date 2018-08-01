@@ -26,7 +26,8 @@ struct PgHdr {
   sqlite3_pcache_page *pPage;    /* Pcache object page handle */
   void *pData;                   /* Page data */
   void *pExtra;                  /* Extra content */
-  PgHdr *pDirty;                 /* Transient list of dirty pages */
+  PCache *pCache;                /* PRIVATE: Cache that owns this page */
+  PgHdr *pDirty;                 /* Transient list of dirty sorted by pgno */
   Pager *pPager;                 /* The pager this page is part of */
   Pgno pgno;                     /* Page number for this page */
 #ifdef SQLITE_CHECK_PAGES
@@ -35,25 +36,25 @@ struct PgHdr {
   u16 flags;                     /* PGHDR flags defined below */
 
   /**********************************************************************
-  ** Elements above are public.  All that follows is private to pcache.c
-  ** and should not be accessed by other modules.
+  ** Elements above, except pCache, are public.  All that follow are 
+  ** private to pcache.c and should not be accessed by other modules.
+  ** pCache is grouped with the public elements for efficiency.
   */
   i16 nRef;                      /* Number of users of this page */
-  PCache *pCache;                /* Cache that owns this page */
-
   PgHdr *pDirtyNext;             /* Next element in list of dirty pages */
   PgHdr *pDirtyPrev;             /* Previous element in list of dirty pages */
 };
 
 /* Bit values for PgHdr.flags */
-#define PGHDR_DIRTY             0x002  /* Page has changed */
-#define PGHDR_NEED_SYNC         0x004  /* Fsync the rollback journal before
-                                       ** writing this page to the database */
-#define PGHDR_NEED_READ         0x008  /* Content is unread */
-#define PGHDR_REUSE_UNLIKELY    0x010  /* A hint that reuse is unlikely */
-#define PGHDR_DONT_WRITE        0x020  /* Do not write content to disk */
+#define PGHDR_CLEAN           0x001  /* Page not on the PCache.pDirty list */
+#define PGHDR_DIRTY           0x002  /* Page is on the PCache.pDirty list */
+#define PGHDR_WRITEABLE       0x004  /* Journaled and ready to modify */
+#define PGHDR_NEED_SYNC       0x008  /* Fsync the rollback journal before
+                                     ** writing this page to the database */
+#define PGHDR_DONT_WRITE      0x010  /* Do not write content to disk */
+#define PGHDR_MMAP            0x020  /* This is an mmap page object */
 
-#define PGHDR_MMAP              0x040  /* This is an mmap page object */
+#define PGHDR_WAL_APPEND      0x040  /* Appended to wal file */
 
 /* Initialize and shutdown the page cache subsystem */
 int sqlite3PcacheInitialize(void);
@@ -97,6 +98,7 @@ void sqlite3PcacheDrop(PgHdr*);         /* Remove page from cache */
 void sqlite3PcacheMakeDirty(PgHdr*);    /* Make sure page is marked dirty */
 void sqlite3PcacheMakeClean(PgHdr*);    /* Mark a single page as clean */
 void sqlite3PcacheCleanAll(PCache*);    /* Mark all dirty list pages as clean */
+void sqlite3PcacheClearWritable(PCache*);
 
 /* Change a page number.  Used by incr-vacuum. */
 void sqlite3PcacheMove(PgHdr*, Pgno);
@@ -135,6 +137,11 @@ int sqlite3PcachePagecount(PCache*);
 void sqlite3PcacheIterateDirty(PCache *pCache, void (*xIter)(PgHdr *));
 #endif
 
+#if defined(SQLITE_DEBUG)
+/* Check invariants on a PgHdr object */
+int sqlite3PcachePageSanity(PgHdr*);
+#endif
+
 /* Set and get the suggested cache-size for the specified pager-cache.
 **
 ** If no global maximum is configured, then the system attempts to limit
@@ -145,6 +152,13 @@ void sqlite3PcacheSetCachesize(PCache *, int);
 #ifdef SQLITE_TEST
 int sqlite3PcacheGetCachesize(PCache *);
 #endif
+
+/* Set or get the suggested spill-size for the specified pager-cache.
+**
+** The spill-size is the minimum number of pages in cache before the cache
+** will attempt to spill dirty pages by calling xStress.
+*/
+int sqlite3PcacheSetSpillsize(PCache *, int);
 
 /* Free up as much memory as possible from the page cache */
 void sqlite3PcacheShrink(PCache*);
@@ -163,5 +177,8 @@ void sqlite3PCacheSetDefault(void);
 /* Return the header size */
 int sqlite3HeaderSizePcache(void);
 int sqlite3HeaderSizePcache1(void);
+
+/* Number of dirty pages as a percentage of the configured cache size */
+int sqlite3PCachePercentDirty(PCache*);
 
 #endif /* _PCACHE_H_ */
