@@ -22,6 +22,7 @@ description: |
     -   Example applications are located in the `example` folder of the module:
 
         - `ToDo Alloy` demonstrates how to use this module with Alloy.
+        - `JSON1-Extension` demonstrates how to use the SQLite JSON1 extension
 
 extends: Titanium.Database
 since: "1.0.0"
@@ -74,9 +75,8 @@ properties:
 
 
 examples:
-  - title: Opening Encrypted Database
+  - title: Open an encrypted database
     example: |
-        //This example demonstrates connecting to an encrypted database.
         var dbobj = require("appcelerator.encrypteddatabase");
         var instance = null;
         var dataTofetch = null;
@@ -85,23 +85,22 @@ examples:
         });
         var indicator = Ti.UI.createActivityIndicator({
             color: 'green',
-            font: {fontFamily:'Helvetica Neue', fontSize:26, fontWeight:'bold'},
-            message: 'Upgrading database...',
+            message: 'Upgrading database ...',
             style: Ti.UI.ActivityIndicatorStyle.DARK,
-            top:'30%',
-            height:Ti.UI.SIZE,
-            width:Ti.UI.SIZE
+            top: '30%',
+            height: Ti.UI.SIZE,
+            width: Ti.UI.SIZE
         });
         function init() {
-            //check if method exist
-            if ("iphone" === Ti.Platform.osname || "ipad" === Ti.Platform.osname) {
+            // iOS: check if cipher upgrade is required
+            if (Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad') {
                 if (dbobj.isCipherUpgradeRequired) {
-                    //check if cipher upgrade required.
+                    // check if cipher upgrade required.
                     if (dbobj.isCipherUpgradeRequired('test.db')) {
                         Ti.API.info('upgrade of database required');
                         indicator.show();
                         dbobj.setPassword('secret');
-                        Ti.API.info("Opening DB...");
+                        Ti.API.info('Opening DB ...');
                         instance = dbobj.open('test.db');
                         indicator.hide();
                         Ti.API.info('database upgrade complete');
@@ -109,10 +108,10 @@ examples:
                     }
                 }
             }
-            //cipher upgrade not required
+            // cipher upgrade not required
             Ti.API.info('cipher upgrade not required');
             dbobj.setPassword('secret');
-            Ti.API.info("Opening DB...");
+            Ti.API.info('Opening DB ...');
             instance = dbobj.open('test.db');
         }
         function setup() {
@@ -146,6 +145,37 @@ examples:
         insert();
         fetch();
         closeDB();
+
+  - title: Use the JSON1-extension to encode/decode JSON-based content
+    example: |
+
+        var dbobj = require('appcelerator.encrypteddatabase');
+
+        var win = Ti.UI.createWindow({ backgroundColor: 'white' });
+        var btn = Ti.UI.createButton({ title: 'Trigger' });
+
+        btn.addEventListener('click', accessDatabase);
+
+        win.add(btn);
+        win.open();
+
+        function accessDatabase() {
+            dbobj.setPassword('secret');
+            
+            Ti.API.info('Opening DB ...');
+            var instance = dbobj.open('test.db');
+            
+            instance.execute('CREATE TABLE IF NOT EXISTS user(name string, phone string);');
+            instance.execute('INSERT into user (name, phone) VALUES("oz", json(\'{"cell":"+491765", "home":"+498973"}\'));');
+            
+            var dataToInsertHandle = instance.execute('select user.phone from user where user.name==\'oz\'');
+            var result = dataToInsertHandle.isValidRow() ? dataToInsertHandle.fieldByName('phone') : null;
+
+            alert('Fetched data: ' + result);
+            Ti.API.info('Closing DB ...');
+            instance.close();
+        }
+
 ---
 name: cipherUpgradeResult
 summary: Dictionary result for the cipherUpgrade method.

@@ -661,9 +661,4 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     return sqlite_stmt;
 }
 
-- (sqlite3 *) sqliteDB;
-{
-	return _sqlite;
-}
-
 @end
