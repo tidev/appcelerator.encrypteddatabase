@@ -516,6 +516,7 @@
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
+					"-DSQLITE_ENABLE_JSON1",
 				);
 				"OTHER_CFLAGS[arch=armv6]" = (
 					"-mno-thumb",
@@ -523,6 +524,7 @@
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
+					"-DSQLITE_ENABLE_JSON1",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = sqlcipher;
@@ -545,6 +547,7 @@
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
+					"-DSQLITE_ENABLE_JSON1",
 				);
 				"OTHER_CFLAGS[arch=armv6]" = (
 					"-mno-thumb",
@@ -554,6 +557,8 @@
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
+					"-DSQLITE_ENABLE_JSON1",
+					"-DSQLITE_ENABLE_JSON1",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = sqlcipher;
@@ -583,6 +588,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				"IPHONEOS_DEPLOYMENT_TARGET[arch=arm64]" = 7.0;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator macosx iphoneos";
@@ -610,6 +616,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				"IPHONEOS_DEPLOYMENT_TARGET[arch=arm64]" = 7.0;
+				OTHER_CFLAGS = "";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator macosx iphoneos";
@@ -678,6 +685,7 @@
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
+					"-DSQLITE_ENABLE_JSON1",
 					"-Wno-ambiguous-macro",
 					"-Wno-#warnings",
 					"-Wno-conversion",
@@ -756,6 +764,7 @@
 					"-DSQLITE_TEMP_STORE=2",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
+					"-DSQLITE_ENABLE_JSON1",
 					"-Wno-ambiguous-macro",
 					"-Wno-#warnings",
 					"-Wno-conversion",
@@ -1221,6 +1230,7 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = amalgamation;
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
@@ -1233,6 +1243,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = amalgamation;
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
