@@ -1,8 +1,11 @@
 ---
-name: Appcelerator.EncryptedDatabase
+name: Modules.EncryptedDatabase
 summary: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 description: |
-    This module exposes the same API as Titanium.Database, but it encrypts everything (even schema) using a password you specify.
+    This module exposes the same API as Titanium.Database, but it encrypts all content (even the schema) using 
+    a password you specify.
+
+    <p class="note">Note: This feature requires a Pro or Enterprise subscription. More infos <a href="https://www.appcelerator.com/pricing/" target="_blank">here</a>!</p>
 
     ### Getting Started
 
@@ -13,7 +16,7 @@ description: |
 
     -   Use `require` to access this module from JavaScript:
 
-            var encryptedDatabase = require("appcelerator.encrypteddatabase");
+            var encryptedDatabase = require('appcelerator.encrypteddatabase');
 
         The `encryptedDatabase` variable is a reference to the Module object.
 
@@ -26,7 +29,7 @@ description: |
 
 extends: Titanium.Database
 since: "1.0.0"
-platforms: [android,iphone,ipad]
+platforms: [android, iphone, ipad]
 
 methods:
   - name: isCipherUpgradeRequired
@@ -56,7 +59,7 @@ methods:
         detects that it's using an older version. This method is optional to give developers
         more flexibility when doing version upgrade on apps.
     returns:
-        type: cipherUpgradeResult
+        type: CipherUpgradeResult
     platforms: [iphone, ipad]
     parameters:
       - name: name
@@ -66,90 +69,87 @@ methods:
     since: "1.3.1"
 
 properties:
-
   - name: password
-    summary: |
-        The password with which to encrypt data.
+    summary: The password used to encrypt sensitive data.
     type: String
     since: "1.0.0"
-
 
 examples:
   - title: Open an encrypted database
     example: |
-        var dbobj = require("appcelerator.encrypteddatabase");
+        var DB = require('appcelerator.encrypteddatabase');
         var instance = null;
         var dataTofetch = null;
         var win = Ti.UI.createWindow({
             backgroundColor: 'white'
         });
+        win.addEventListener('open', function () {
+            init();
+            setup();
+            insert();
+            fetch();
+            closeDB();
+        });
         var indicator = Ti.UI.createActivityIndicator({
             color: 'green',
             message: 'Upgrading database ...',
             style: Ti.UI.ActivityIndicatorStyle.DARK,
-            top: '30%',
+            top: 100,
             height: Ti.UI.SIZE,
             width: Ti.UI.SIZE
         });
         function init() {
             // iOS: check if cipher upgrade is required
             if (Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad') {
-                if (dbobj.isCipherUpgradeRequired) {
+                if (DB.isCipherUpgradeRequired) {
                     // check if cipher upgrade required.
-                    if (dbobj.isCipherUpgradeRequired('test.db')) {
+                    if (DB.isCipherUpgradeRequired('test.db')) {
                         Ti.API.info('upgrade of database required');
                         indicator.show();
-                        dbobj.setPassword('secret');
+                        DB.password = 'secret';
                         Ti.API.info('Opening DB ...');
-                        instance = dbobj.open('test.db');
+                        instance = DB.open('test.db');
                         indicator.hide();
                         Ti.API.info('database upgrade complete');
                         return;
                     }
                 }
             }
-            // cipher upgrade not required
-            Ti.API.info('cipher upgrade not required');
-            dbobj.setPassword('secret');
+            DB.password = 'secret';
             Ti.API.info('Opening DB ...');
-            instance = dbobj.open('test.db');
+            instance = DB.open('test.db');
         }
         function setup() {
-            instance.execute("CREATE TABLE IF NOT EXISTS testtable(id integer PRIMARY KEY);");
-            instance.execute("INSERT OR IGNORE INTO testtable(id) VALUES (1);");
+            instance.execute('CREATE TABLE IF NOT EXISTS testtable(id integer PRIMARY KEY);');
+            instance.execute('INSERT OR IGNORE INTO testtable(id) VALUES (1);');
         }
         function insert(){
-            var dataToInsertHandle = instance.execute("SELECT id FROM testtable ORDER BY id DESC LIMIT 1;");
+            var dataToInsertHandle = instance.execute('SELECT id FROM testtable ORDER BY id DESC LIMIT 1;');
             var dataToInsert = null;
             if(dataToInsertHandle.isValidRow()) {
                 dataToInsert = (dataToInsertHandle.fieldByName('id') + 1);
                 dataTofetch = dataToInsert;
             }
-            instance.execute("INSERT OR IGNORE INTO testtable(id) VALUES (" + dataToInsert + ");");
+            instance.execute('INSERT OR IGNORE INTO testtable(id) VALUES (' + dataToInsert + ');');
         }
         function fetch() {
             var rowValue = null;
-            var rowHandle = instance.execute("SELECT * FROM testtable WHERE id=" + dataTofetch + ";");
+            var rowHandle = instance.execute('SELECT * FROM testtable WHERE id=' + dataTofetch + ';');
             if (rowHandle.isValidRow()) {
                 rowValue = rowHandle.fieldByName('id');
             }
-            alert("Fetched Data: " + rowValue);
+            alert('Fetched Data: ' + rowValue);
         }
         function closeDB() {
             instance.close();
         }
         win.add(indicator);
         win.open();
-        init();
-        setup();
-        insert();
-        fetch();
-        closeDB();
 
   - title: Use the JSON1-extension to encode/decode JSON-based content
     example: |
 
-        var dbobj = require('appcelerator.encrypteddatabase');
+        var DB = require('appcelerator.encrypteddatabase');
 
         var win = Ti.UI.createWindow({ backgroundColor: 'white' });
         var btn = Ti.UI.createButton({ title: 'Trigger' });
@@ -160,10 +160,10 @@ examples:
         win.open();
 
         function accessDatabase() {
-            dbobj.setPassword('secret');
+            DB.password = 'secret';
             
             Ti.API.info('Opening DB ...');
-            var instance = dbobj.open('test.db');
+            var instance = DB.open('test.db');
             
             instance.execute('CREATE TABLE IF NOT EXISTS user(name string, phone string);');
             instance.execute('INSERT into user (name, phone) VALUES("oz", json(\'{"cell":"+491765", "home":"+498973"}\'));');
@@ -177,7 +177,7 @@ examples:
         }
 
 ---
-name: cipherUpgradeResult
+name: CipherUpgradeResult
 summary: Dictionary result for the cipherUpgrade method.
 platforms: [iphone, ipad]
 
