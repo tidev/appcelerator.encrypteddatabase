@@ -2,7 +2,7 @@
 name: Modules.EncryptedDatabase
 summary: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 description: |
-    This module exposes the same API as Titanium.Database, but it encrypts all content (even the schema) using 
+    This module exposes the same API as Titanium.Database, but it encrypts all content (even the schema) using
     a password you specify.
 
     <p class="note">Note: This feature requires a Pro or Enterprise subscription. More infos <a href="https://www.appcelerator.com/pricing/" target="_blank">here</a>!</p>
@@ -150,7 +150,6 @@ examples:
     example: |
 
         var DB = require('appcelerator.encrypteddatabase');
-
         var win = Ti.UI.createWindow({ backgroundColor: 'white' });
         var btn = Ti.UI.createButton({ title: 'Trigger' });
 
@@ -160,21 +159,18 @@ examples:
         win.open();
 
         function accessDatabase() {
-            DB.password = 'secret';
-            
-            Ti.API.info('Opening DB ...');
-            var instance = DB.open('test.db');
-            
-            instance.execute('CREATE TABLE IF NOT EXISTS user(name string, phone string);');
-            instance.execute('INSERT into user (name, phone) VALUES("oz", json(\'{"cell":"+491765", "home":"+498973"}\'));');
-            
-            var dataToInsertHandle = instance.execute('select user.phone from user where user.name==\'oz\'');
-            var result = dataToInsertHandle.isValidRow() ? dataToInsertHandle.fieldByName('phone') : null;
-
-            alert('Fetched data: ' + result);
-            Ti.API.info('Closing DB ...');
-            instance.close();
+          DB.password = 'secret';
+          Ti.API.info('Opening DB ...');
+          var instance = DB.open('test.db');
+          instance.execute('CREATE TABLE IF NOT EXISTS user(name string, phone string);');
+          instance.execute('INSERT into user (name, phone) VALUES("oz", json(\'{"cell":"+491765", "home":"+498973"}\'));');
+          var dataToInsertHandle = instance.execute('select user.phone from user where user.name==\'oz\'');
+          var result = dataToInsertHandle.isValidRow() ? dataToInsertHandle.fieldByName('phone') : null;
+          alert('Fetched data: ' + result);
+          Ti.API.info('Closing DB ...');
+          instance.close();
         }
+
 
 ---
 name: CipherUpgradeResult
