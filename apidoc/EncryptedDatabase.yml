@@ -2,7 +2,7 @@
 name: Modules.EncryptedDatabase
 summary: Provides transparent, secure 256-bit AES encryption of SQLite database files.
 description: |
-    This module exposes the same API as Titanium.Database, but it encrypts all content (even the schema) using 
+    This module exposes the same API as Titanium.Database, but it encrypts all content (even the schema) using
     a password you specify.
 
     <p class="note">Note: This feature requires a Pro or Enterprise subscription. More infos <a href="https://www.appcelerator.com/pricing/" target="_blank">here</a>!</p>
