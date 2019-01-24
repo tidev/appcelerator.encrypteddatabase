@@ -9,6 +9,7 @@
 #define FTS5_STRING                           9
 #define FTS5_LP                              10
 #define FTS5_RP                              11
-#define FTS5_COMMA                           12
-#define FTS5_PLUS                            13
-#define FTS5_STAR                            14
+#define FTS5_CARET                           12
+#define FTS5_COMMA                           13
+#define FTS5_PLUS                            14
+#define FTS5_STAR                            15
