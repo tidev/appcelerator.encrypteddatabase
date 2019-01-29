@@ -328,6 +328,10 @@
 					"-DDEBUG",
 					"-DTI_POST_1_2",
 					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_ENABLE_JSON1",
+					"-DSQLITE_CORE",
+					"-DSQLITE_THREADSAFE",
+					"-DSQLCIPHER_CRYPTO_CC",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
@@ -372,6 +376,10 @@
 					"$(inherited)",
 					"-DTI_POST_1_2",
 					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_ENABLE_JSON1",
+					"-DSQLITE_CORE",
+					"-DSQLITE_THREADSAFE",
+					"-DSQLCIPHER_CRYPTO_CC",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
@@ -417,6 +425,9 @@
 					"-DSQLCIPHER_CRYPTO_CC",
 					"-DSQLITE_HAS_CODEC",
 					"-DNDEBUG",
+					"-DSQLITE_ENABLE_JSON1",
+					"-DSQLITE_CORE",
+					"-DSQLITE_THREADSAFE",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
@@ -462,6 +473,9 @@
 					"-DSQLITE_HAS_CODEC",
 					"-DSQLCIPHER_CRYPTO_CC",
 					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLITE_ENABLE_JSON1",
+					"-DSQLITE_CORE",
+					"-DSQLITE_THREADSAFE",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
