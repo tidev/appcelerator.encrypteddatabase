@@ -23,6 +23,7 @@
 ** input grammar file:
 */
 #include <stdio.h>
+#include <assert.h>
 /************ Begin %include sections from the grammar ************************/
 #line 47 "fts5parse.y"
 
@@ -52,7 +53,7 @@
 */
 #define YYMALLOCARGTYPE  u64
 
-#line 56 "fts5parse.c"
+#line 57 "fts5parse.c"
 /**************** End of %include directives **********************************/
 /* These constants specify the various numeric values for terminal symbols
 ** in a format understandable to "makeheaders".  This section is blank unless
@@ -93,26 +94,30 @@
 **                       zero the stack is dynamically sized using realloc()
 **    sqlite3Fts5ParserARG_SDECL     A static variable declaration for the %extra_argument
 **    sqlite3Fts5ParserARG_PDECL     A parameter declaration for the %extra_argument
+**    sqlite3Fts5ParserARG_PARAM     Code to pass %extra_argument as a subroutine parameter
 **    sqlite3Fts5ParserARG_STORE     Code to store %extra_argument into yypParser
 **    sqlite3Fts5ParserARG_FETCH     Code to extract %extra_argument from yypParser
+**    sqlite3Fts5ParserCTX_*         As sqlite3Fts5ParserARG_ except for %extra_context
 **    YYERRORSYMBOL      is the code number of the error symbol.  If not
 **                       defined, then do no error processing.
 **    YYNSTATE           the combined number of states.
 **    YYNRULE            the number of rules in the grammar
+**    YYNTOKEN           Number of terminal symbols
 **    YY_MAX_SHIFT       Maximum value for shift actions
 **    YY_MIN_SHIFTREDUCE Minimum value for shift-reduce actions
 **    YY_MAX_SHIFTREDUCE Maximum value for shift-reduce actions
-**    YY_MIN_REDUCE      Maximum value for reduce actions
 **    YY_ERROR_ACTION    The yy_action[] code for syntax error
 **    YY_ACCEPT_ACTION   The yy_action[] code for accept
 **    YY_NO_ACTION       The yy_action[] code for no-op
+**    YY_MIN_REDUCE      Minimum value for reduce actions
+**    YY_MAX_REDUCE      Maximum value for reduce actions
 */
 #ifndef INTERFACE
 # define INTERFACE 1
 #endif
 /************* Begin control #defines *****************************************/
 #define YYCODETYPE unsigned char
-#define YYNOCODE 28
+#define YYNOCODE 27
 #define YYACTIONTYPE unsigned char
 #define sqlite3Fts5ParserTOKENTYPE Fts5Token
 typedef union {
@@ -129,19 +134,27 @@ typedef union {
 #endif
 #define sqlite3Fts5ParserARG_SDECL Fts5Parse *pParse;
 #define sqlite3Fts5ParserARG_PDECL ,Fts5Parse *pParse
-#define sqlite3Fts5ParserARG_FETCH Fts5Parse *pParse = yypParser->pParse
-#define sqlite3Fts5ParserARG_STORE yypParser->pParse = pParse
-#define YYNSTATE             33
-#define YYNRULE              27
-#define YY_MAX_SHIFT         32
-#define YY_MIN_SHIFTREDUCE   50
-#define YY_MAX_SHIFTREDUCE   76
-#define YY_MIN_REDUCE        77
-#define YY_MAX_REDUCE        103
-#define YY_ERROR_ACTION      104
-#define YY_ACCEPT_ACTION     105
-#define YY_NO_ACTION         106
+#define sqlite3Fts5ParserARG_PARAM ,pParse
+#define sqlite3Fts5ParserARG_FETCH Fts5Parse *pParse=yypParser->pParse;
+#define sqlite3Fts5ParserARG_STORE yypParser->pParse=pParse;
+#define sqlite3Fts5ParserCTX_SDECL
+#define sqlite3Fts5ParserCTX_PDECL
+#define sqlite3Fts5ParserCTX_PARAM
+#define sqlite3Fts5ParserCTX_FETCH
+#define sqlite3Fts5ParserCTX_STORE
+#define YYNSTATE             35
+#define YYNRULE              28
+#define YYNTOKEN             16
+#define YY_MAX_SHIFT         34
+#define YY_MIN_SHIFTREDUCE   52
+#define YY_MAX_SHIFTREDUCE   79
+#define YY_ERROR_ACTION      80
+#define YY_ACCEPT_ACTION     81
+#define YY_NO_ACTION         82
+#define YY_MIN_REDUCE        83
+#define YY_MAX_REDUCE        110
 /************* End control #defines *******************************************/
+#define YY_NLOOKAHEAD ((int)(sizeof(yy_lookahead)/sizeof(yy_lookahead[0])))
 
 /* Define the yytestcase() macro to be a no-op if is not already defined
 ** otherwise.
@@ -170,9 +183,6 @@ typedef union {
 **   N between YY_MIN_SHIFTREDUCE       Shift to an arbitrary state then
 **     and YY_MAX_SHIFTREDUCE           reduce by rule N-YY_MIN_SHIFTREDUCE.
 **
-**   N between YY_MIN_REDUCE            Reduce by rule N-YY_MIN_REDUCE
-**     and YY_MAX_REDUCE
-**
 **   N == YY_ERROR_ACTION               A syntax error has occurred.
 **
 **   N == YY_ACCEPT_ACTION              The parser accepts its input.
@@ -180,25 +190,22 @@ typedef union {
 **   N == YY_NO_ACTION                  No such action.  Denotes unused
 **                                      slots in the yy_action[] table.
 **
+**   N between YY_MIN_REDUCE            Reduce by rule N-YY_MIN_REDUCE
+**     and YY_MAX_REDUCE
+**
 ** The action table is constructed as a single large table named yy_action[].
 ** Given state S and lookahead X, the action is computed as either:
 **
 **    (A)   N = yy_action[ yy_shift_ofst[S] + X ]
 **    (B)   N = yy_default[S]
 **
-** The (A) formula is preferred.  The B formula is used instead if:
-**    (1)  The yy_shift_ofst[S]+X value is out of range, or
-**    (2)  yy_lookahead[yy_shift_ofst[S]+X] is not equal to X, or
-**    (3)  yy_shift_ofst[S] equal YY_SHIFT_USE_DFLT.
-** (Implementation note: YY_SHIFT_USE_DFLT is chosen so that
-** YY_SHIFT_USE_DFLT+X will be out of range for all possible lookaheads X.
-** Hence only tests (1) and (2) need to be evaluated.)
+** The (A) formula is preferred.  The B formula is used instead if
+** yy_lookahead[yy_shift_ofst[S]+X] is not equal to X.
 **
 ** The formulas above are for computing the action when the lookahead is
 ** a terminal symbol.  If the lookahead is a non-terminal (as occurs after
 ** a reduce action) then the yy_reduce_ofst[] array is used in place of
-** the yy_shift_ofst[] array and YY_REDUCE_USE_DFLT is used in place of
-** YY_SHIFT_USE_DFLT.
+** the yy_shift_ofst[] array.
 **
 ** The following are the tables generated in this section:
 **
@@ -212,54 +219,56 @@ typedef union {
 **  yy_default[]       Default action for each state.
 **
 *********** Begin parsing tables **********************************************/
-#define YY_ACTTAB_COUNT (98)
+#define YY_ACTTAB_COUNT (105)
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */   105,   19,   90,    6,   26,   93,   92,   24,   24,   17,
- /*    10 */    90,    6,   26,   16,   92,   54,   24,   18,   90,    6,
- /*    20 */    26,   10,   92,   12,   24,   75,   86,   90,    6,   26,
- /*    30 */    13,   92,   75,   24,   20,   90,    6,   26,  101,   92,
- /*    40 */    56,   24,   27,   90,    6,   26,  100,   92,   21,   24,
- /*    50 */    23,   15,   30,   11,    1,   91,   22,   25,    9,   92,
- /*    60 */     7,   24,    3,    4,    5,    3,    4,    5,    3,   77,
- /*    70 */     4,    5,    3,   61,   23,   15,   60,   11,   80,   12,
- /*    80 */     2,   13,   68,   10,   29,   52,   55,   75,   31,   32,
- /*    90 */     8,   28,    5,    3,   51,   55,   72,   14,
+ /*     0 */    81,   20,   96,    6,   28,   99,   98,   26,   26,   18,
+ /*    10 */    96,    6,   28,   17,   98,   56,   26,   19,   96,    6,
+ /*    20 */    28,   14,   98,   14,   26,   31,   92,   96,    6,   28,
+ /*    30 */   108,   98,   25,   26,   21,   96,    6,   28,   78,   98,
+ /*    40 */    58,   26,   29,   96,    6,   28,  107,   98,   22,   26,
+ /*    50 */    24,   16,   12,   11,    1,   13,   13,   24,   16,   23,
+ /*    60 */    11,   33,   34,   13,   97,    8,   27,   32,   98,    7,
+ /*    70 */    26,    3,    4,    5,    3,    4,    5,    3,   83,    4,
+ /*    80 */     5,    3,   63,    5,    3,   62,   12,    2,   86,   13,
+ /*    90 */     9,   30,   10,   10,   54,   57,   75,   78,   78,   53,
+ /*   100 */    57,   15,   82,   82,   71,
 };
 static const YYCODETYPE yy_lookahead[] = {
  /*     0 */    16,   17,   18,   19,   20,   22,   22,   24,   24,   17,
  /*    10 */    18,   19,   20,    7,   22,    9,   24,   17,   18,   19,
- /*    20 */    20,   10,   22,    9,   24,   14,   17,   18,   19,   20,
- /*    30 */     9,   22,   14,   24,   17,   18,   19,   20,   26,   22,
+ /*    20 */    20,    9,   22,    9,   24,   13,   17,   18,   19,   20,
+ /*    30 */    26,   22,   24,   24,   17,   18,   19,   20,   15,   22,
  /*    40 */     9,   24,   17,   18,   19,   20,   26,   22,   21,   24,
- /*    50 */     6,    7,   13,    9,   10,   18,   21,   20,    5,   22,
- /*    60 */     5,   24,    3,    1,    2,    3,    1,    2,    3,    0,
- /*    70 */     1,    2,    3,   11,    6,    7,   11,    9,    5,    9,
- /*    80 */    10,    9,   11,   10,   12,    8,    9,   14,   24,   25,
- /*    90 */    23,   24,    2,    3,    8,    9,    9,    9,
+ /*    50 */     6,    7,    9,    9,   10,   12,   12,    6,    7,   21,
+ /*    60 */     9,   24,   25,   12,   18,    5,   20,   14,   22,    5,
+ /*    70 */    24,    3,    1,    2,    3,    1,    2,    3,    0,    1,
+ /*    80 */     2,    3,   11,    2,    3,   11,    9,   10,    5,   12,
+ /*    90 */    23,   24,   10,   10,    8,    9,    9,   15,   15,    8,
+ /*   100 */     9,    9,   27,   27,   11,   27,   27,   27,   27,   27,
+ /*   110 */    27,   27,   27,   27,   27,   27,   27,   27,   27,   27,
+ /*   120 */    27,
 };
-#define YY_SHIFT_USE_DFLT (98)
-#define YY_SHIFT_COUNT    (32)
+#define YY_SHIFT_COUNT    (34)
 #define YY_SHIFT_MIN      (0)
-#define YY_SHIFT_MAX      (90)
+#define YY_SHIFT_MAX      (93)
 static const unsigned char yy_shift_ofst[] = {
- /*     0 */    44,   44,   44,   44,   44,   44,   68,   70,   72,   14,
- /*    10 */    21,   73,   11,   18,   18,   31,   31,   62,   65,   69,
- /*    20 */    90,   77,   86,    6,   39,   53,   55,   59,   39,   87,
- /*    30 */    88,   39,   71,
+ /*     0 */    44,   44,   44,   44,   44,   44,   51,   77,   43,   12,
+ /*    10 */    14,   83,   82,   14,   23,   23,   31,   31,   71,   74,
+ /*    20 */    78,   81,   86,   91,    6,   53,   53,   60,   64,   68,
+ /*    30 */    53,   87,   92,   53,   93,
 };
-#define YY_REDUCE_USE_DFLT (-18)
-#define YY_REDUCE_COUNT (16)
+#define YY_REDUCE_COUNT (17)
 #define YY_REDUCE_MIN   (-17)
 #define YY_REDUCE_MAX   (67)
 static const signed char yy_reduce_ofst[] = {
- /*     0 */   -16,   -8,    0,    9,   17,   25,   37,  -17,   64,  -17,
- /*    10 */    67,   12,   12,   12,   20,   27,   35,
+ /*     0 */   -16,   -8,    0,    9,   17,   25,   46,  -17,  -17,   37,
+ /*    10 */    67,    4,    4,    8,    4,   20,   27,   38,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   104,  104,  104,  104,  104,  104,   89,  104,   98,  104,
- /*    10 */   104,  103,  103,  103,  103,  104,  104,  104,  104,  104,
- /*    20 */    85,  104,  104,  104,   94,  104,  104,   84,   96,  104,
- /*    30 */   104,   97,  104,
+ /*     0 */    80,   80,   80,   80,   80,   80,   95,   80,   80,  105,
+ /*    10 */    80,  110,  110,   80,  110,  110,   80,   80,   80,   80,
+ /*    20 */    80,   91,   80,   80,   80,  101,  100,   80,   80,   90,
+ /*    30 */   103,   80,   80,  104,   80,
 };
 /********** End of lemon-generated parsing tables *****************************/
 
@@ -318,6 +327,7 @@ struct yyParser {
   int yyerrcnt;                 /* Shifts left before out of the error */
 #endif
   sqlite3Fts5ParserARG_SDECL                /* A place to hold %extra_argument */
+  sqlite3Fts5ParserCTX_SDECL                /* A place to hold %extra_context */
 #if YYSTACKDEPTH<=0
   int yystksz;                  /* Current side of the stack */
   yyStackEntry *yystack;        /* The parser's stack */
@@ -361,19 +371,39 @@ void sqlite3Fts5ParserTrace(FILE *TraceFILE, char *zTracePrompt){
 }
 #endif /* NDEBUG */
 
-#ifndef NDEBUG
+#if defined(YYCOVERAGE) || !defined(NDEBUG)
 /* For tracing shifts, the names of all terminals and nonterminals
 ** are required.  The following table supplies these names */
 static const char *const yyTokenName[] = { 
-  "$",             "OR",            "AND",           "NOT",         
-  "TERM",          "COLON",         "MINUS",         "LCP",         
-  "RCP",           "STRING",        "LP",            "RP",          
-  "COMMA",         "PLUS",          "STAR",          "error",       
-  "input",         "expr",          "cnearset",      "exprlist",    
-  "colset",        "colsetlist",    "nearset",       "nearphrases", 
-  "phrase",        "neardist_opt",  "star_opt",    
+  /*    0 */ "$",
+  /*    1 */ "OR",
+  /*    2 */ "AND",
+  /*    3 */ "NOT",
+  /*    4 */ "TERM",
+  /*    5 */ "COLON",
+  /*    6 */ "MINUS",
+  /*    7 */ "LCP",
+  /*    8 */ "RCP",
+  /*    9 */ "STRING",
+  /*   10 */ "LP",
+  /*   11 */ "RP",
+  /*   12 */ "CARET",
+  /*   13 */ "COMMA",
+  /*   14 */ "PLUS",
+  /*   15 */ "STAR",
+  /*   16 */ "input",
+  /*   17 */ "expr",
+  /*   18 */ "cnearset",
+  /*   19 */ "exprlist",
+  /*   20 */ "colset",
+  /*   21 */ "colsetlist",
+  /*   22 */ "nearset",
+  /*   23 */ "nearphrases",
+  /*   24 */ "phrase",
+  /*   25 */ "neardist_opt",
+  /*   26 */ "star_opt",
 };
-#endif /* NDEBUG */
+#endif /* defined(YYCOVERAGE) || !defined(NDEBUG) */
 
 #ifndef NDEBUG
 /* For tracing reduce actions, the names of all rules are required.
@@ -397,15 +427,16 @@ static const char *const yyRuleName[] = {
  /*  15 */ "cnearset ::= nearset",
  /*  16 */ "cnearset ::= colset COLON nearset",
  /*  17 */ "nearset ::= phrase",
- /*  18 */ "nearset ::= STRING LP nearphrases neardist_opt RP",
- /*  19 */ "nearphrases ::= phrase",
- /*  20 */ "nearphrases ::= nearphrases phrase",
- /*  21 */ "neardist_opt ::=",
- /*  22 */ "neardist_opt ::= COMMA STRING",
- /*  23 */ "phrase ::= phrase PLUS STRING star_opt",
- /*  24 */ "phrase ::= STRING star_opt",
- /*  25 */ "star_opt ::= STAR",
- /*  26 */ "star_opt ::=",
+ /*  18 */ "nearset ::= CARET phrase",
+ /*  19 */ "nearset ::= STRING LP nearphrases neardist_opt RP",
+ /*  20 */ "nearphrases ::= phrase",
+ /*  21 */ "nearphrases ::= nearphrases phrase",
+ /*  22 */ "neardist_opt ::=",
+ /*  23 */ "neardist_opt ::= COMMA STRING",
+ /*  24 */ "phrase ::= phrase PLUS STRING star_opt",
+ /*  25 */ "phrase ::= STRING star_opt",
+ /*  26 */ "star_opt ::= STAR",
+ /*  27 */ "star_opt ::=",
 };
 #endif /* NDEBUG */
 
@@ -454,28 +485,29 @@ static int yyGrowStack(yyParser *p){
 
 /* Initialize a new parser that has already been allocated.
 */
-void sqlite3Fts5ParserInit(void *yypParser){
-  yyParser *pParser = (yyParser*)yypParser;
+void sqlite3Fts5ParserInit(void *yypRawParser sqlite3Fts5ParserCTX_PDECL){
+  yyParser *yypParser = (yyParser*)yypRawParser;
+  sqlite3Fts5ParserCTX_STORE
 #ifdef YYTRACKMAXSTACKDEPTH
-  pParser->yyhwm = 0;
+  yypParser->yyhwm = 0;
 #endif
 #if YYSTACKDEPTH<=0
-  pParser->yytos = NULL;
-  pParser->yystack = NULL;
-  pParser->yystksz = 0;
-  if( yyGrowStack(pParser) ){
-    pParser->yystack = &pParser->yystk0;
-    pParser->yystksz = 1;
+  yypParser->yytos = NULL;
+  yypParser->yystack = NULL;
+  yypParser->yystksz = 0;
+  if( yyGrowStack(yypParser) ){
+    yypParser->yystack = &yypParser->yystk0;
+    yypParser->yystksz = 1;
   }
 #endif
 #ifndef YYNOERRORRECOVERY
-  pParser->yyerrcnt = -1;
+  yypParser->yyerrcnt = -1;
 #endif
-  pParser->yytos = pParser->yystack;
-  pParser->yystack[0].stateno = 0;
-  pParser->yystack[0].major = 0;
+  yypParser->yytos = yypParser->yystack;
+  yypParser->yystack[0].stateno = 0;
+  yypParser->yystack[0].major = 0;
 #if YYSTACKDEPTH>0
-  pParser->yystackEnd = &pParser->yystack[YYSTACKDEPTH-1];
+  yypParser->yystackEnd = &yypParser->yystack[YYSTACKDEPTH-1];
 #endif
 }
 
@@ -492,11 +524,14 @@ void sqlite3Fts5ParserInit(void *yypParser){
 ** A pointer to a parser.  This pointer is used in subsequent calls
 ** to sqlite3Fts5Parser and sqlite3Fts5ParserFree.
 */
-void *sqlite3Fts5ParserAlloc(void *(*mallocProc)(YYMALLOCARGTYPE)){
-  yyParser *pParser;
-  pParser = (yyParser*)(*mallocProc)( (YYMALLOCARGTYPE)sizeof(yyParser) );
-  if( pParser ) sqlite3Fts5ParserInit(pParser);
-  return pParser;
+void *sqlite3Fts5ParserAlloc(void *(*mallocProc)(YYMALLOCARGTYPE) sqlite3Fts5ParserCTX_PDECL){
+  yyParser *yypParser;
+  yypParser = (yyParser*)(*mallocProc)( (YYMALLOCARGTYPE)sizeof(yyParser) );
+  if( yypParser ){
+    sqlite3Fts5ParserCTX_STORE
+    sqlite3Fts5ParserInit(yypParser sqlite3Fts5ParserCTX_PARAM);
+  }
+  return (void*)yypParser;
 }
 #endif /* sqlite3Fts5Parser_ENGINEALWAYSONSTACK */
 
@@ -513,7 +548,8 @@ static void yy_destructor(
   YYCODETYPE yymajor,     /* Type code for object to destroy */
   YYMINORTYPE *yypminor   /* The object to be destroyed */
 ){
-  sqlite3Fts5ParserARG_FETCH;
+  sqlite3Fts5ParserARG_FETCH
+  sqlite3Fts5ParserCTX_FETCH
   switch( yymajor ){
     /* Here is inserted the actions which take place when a
     ** terminal or non-terminal is destroyed.  This can happen
@@ -530,7 +566,7 @@ static void yy_destructor(
 {
 #line 83 "fts5parse.y"
  (void)pParse; 
-#line 534 "fts5parse.c"
+#line 570 "fts5parse.c"
 }
       break;
     case 17: /* expr */
@@ -539,7 +575,7 @@ static void yy_destructor(
 {
 #line 89 "fts5parse.y"
  sqlite3Fts5ParseNodeFree((yypminor->yy24)); 
-#line 543 "fts5parse.c"
+#line 579 "fts5parse.c"
 }
       break;
     case 20: /* colset */
@@ -547,7 +583,7 @@ static void yy_destructor(
 {
 #line 93 "fts5parse.y"
  sqlite3_free((yypminor->yy11)); 
-#line 551 "fts5parse.c"
+#line 587 "fts5parse.c"
 }
       break;
     case 22: /* nearset */
@@ -555,14 +591,14 @@ static void yy_destructor(
 {
 #line 148 "fts5parse.y"
  sqlite3Fts5ParseNearsetFree((yypminor->yy46)); 
-#line 559 "fts5parse.c"
+#line 595 "fts5parse.c"
 }
       break;
     case 24: /* phrase */
 {
-#line 179 "fts5parse.y"
+#line 183 "fts5parse.y"
  sqlite3Fts5ParsePhraseFree((yypminor->yy53)); 
-#line 566 "fts5parse.c"
+#line 602 "fts5parse.c"
 }
       break;
 /********* End destructor definitions *****************************************/
@@ -633,24 +669,66 @@ int sqlite3Fts5ParserStackPeak(void *p){
 }
 #endif
 
+/* This array of booleans keeps track of the parser statement
+** coverage.  The element yycoverage[X][Y] is set when the parser
+** is in state X and has a lookahead token Y.  In a well-tested
+** systems, every element of this matrix should end up being set.
+*/
+#if defined(YYCOVERAGE)
+static unsigned char yycoverage[YYNSTATE][YYNTOKEN];
+#endif
+
+/*
+** Write into out a description of every state/lookahead combination that
+**
+**   (1)  has not been used by the parser, and
+**   (2)  is not a syntax error.
+**
+** Return the number of missed state/lookahead combinations.
+*/
+#if defined(YYCOVERAGE)
+int sqlite3Fts5ParserCoverage(FILE *out){
+  int stateno, iLookAhead, i;
+  int nMissed = 0;
+  for(stateno=0; stateno<YYNSTATE; stateno++){
+    i = yy_shift_ofst[stateno];
+    for(iLookAhead=0; iLookAhead<YYNTOKEN; iLookAhead++){
+      if( yy_lookahead[i+iLookAhead]!=iLookAhead ) continue;
+      if( yycoverage[stateno][iLookAhead]==0 ) nMissed++;
+      if( out ){
+        fprintf(out,"State %d lookahead %s %s\n", stateno,
+                yyTokenName[iLookAhead],
+                yycoverage[stateno][iLookAhead] ? "ok" : "missed");
+      }
+    }
+  }
+  return nMissed;
+}
+#endif
+
 /*
 ** Find the appropriate action for a parser given the terminal
 ** look-ahead token iLookAhead.
 */
-static unsigned int yy_find_shift_action(
-  yyParser *pParser,        /* The parser */
-  YYCODETYPE iLookAhead     /* The look-ahead token */
+static YYACTIONTYPE yy_find_shift_action(
+  YYCODETYPE iLookAhead,    /* The look-ahead token */
+  YYACTIONTYPE stateno      /* Current state number */
 ){
   int i;
-  int stateno = pParser->yytos->stateno;
- 
-  if( stateno>=YY_MIN_REDUCE ) return stateno;
+
+  if( stateno>YY_MAX_SHIFT ) return stateno;
   assert( stateno <= YY_SHIFT_COUNT );
+#if defined(YYCOVERAGE)
+  yycoverage[stateno][iLookAhead] = 1;
+#endif
   do{
     i = yy_shift_ofst[stateno];
+    assert( i>=0 );
+    /* assert( i+YYNTOKEN<=(int)YY_NLOOKAHEAD ); */
     assert( iLookAhead!=YYNOCODE );
+    assert( iLookAhead < YYNTOKEN );
     i += iLookAhead;
-    if( i<0 || i>=YY_ACTTAB_COUNT || yy_lookahead[i]!=iLookAhead ){
+    if( i>=YY_NLOOKAHEAD || yy_lookahead[i]!=iLookAhead ){
 #ifdef YYFALLBACK
       YYCODETYPE iFallback;            /* Fallback token */
       if( iLookAhead<sizeof(yyFallback)/sizeof(yyFallback[0])
@@ -676,6 +754,7 @@ static unsigned int yy_find_shift_action(
 #if YY_SHIFT_MAX+YYWILDCARD>=YY_ACTTAB_COUNT
           j<YY_ACTTAB_COUNT &&
 #endif
+          j<(int)(sizeof(yy_lookahead)/sizeof(yy_lookahead[0])) &&
           yy_lookahead[j]==YYWILDCARD && iLookAhead>0
         ){
 #ifndef NDEBUG
@@ -700,8 +779,8 @@ static unsigned int yy_find_shift_action(
 ** Find the appropriate action for a parser given the non-terminal
 ** look-ahead token iLookAhead.
 */
-static int yy_find_reduce_action(
-  int stateno,              /* Current state number */
+static YYACTIONTYPE yy_find_reduce_action(
+  YYACTIONTYPE stateno,     /* Current state number */
   YYCODETYPE iLookAhead     /* The look-ahead token */
 ){
   int i;
@@ -713,7 +792,6 @@ static int yy_find_reduce_action(
   assert( stateno<=YY_REDUCE_COUNT );
 #endif
   i = yy_reduce_ofst[stateno];
-  assert( i!=YY_REDUCE_USE_DFLT );
   assert( iLookAhead!=YYNOCODE );
   i += iLookAhead;
 #ifdef YYERRORSYMBOL
@@ -731,7 +809,8 @@ static int yy_find_reduce_action(
 ** The following routine is called if the stack overflows.
 */
 static void yyStackOverflow(yyParser *yypParser){
-   sqlite3Fts5ParserARG_FETCH;
+   sqlite3Fts5ParserARG_FETCH
+   sqlite3Fts5ParserCTX_FETCH
 #ifndef NDEBUG
    if( yyTraceFILE ){
      fprintf(yyTraceFILE,"%sStack Overflow!\n",yyTracePrompt);
@@ -744,29 +823,31 @@ static void yyStackOverflow(yyParser *yypParser){
 #line 36 "fts5parse.y"
 
   sqlite3Fts5ParseError(pParse, "fts5: parser stack overflow");
-#line 748 "fts5parse.c"
+#line 827 "fts5parse.c"
 /******** End %stack_overflow code ********************************************/
-   sqlite3Fts5ParserARG_STORE; /* Suppress warning about unused %extra_argument var */
+   sqlite3Fts5ParserARG_STORE /* Suppress warning about unused %extra_argument var */
+   sqlite3Fts5ParserCTX_STORE
 }
 
 /*
 ** Print tracing information for a SHIFT action
 */
 #ifndef NDEBUG
-static void yyTraceShift(yyParser *yypParser, int yyNewState){
+static void yyTraceShift(yyParser *yypParser, int yyNewState, const char *zTag){
   if( yyTraceFILE ){
     if( yyNewState<YYNSTATE ){
-      fprintf(yyTraceFILE,"%sShift '%s', go to state %d\n",
-         yyTracePrompt,yyTokenName[yypParser->yytos->major],
+      fprintf(yyTraceFILE,"%s%s '%s', go to state %d\n",
+         yyTracePrompt, zTag, yyTokenName[yypParser->yytos->major],
          yyNewState);
     }else{
-      fprintf(yyTraceFILE,"%sShift '%s'\n",
-         yyTracePrompt,yyTokenName[yypParser->yytos->major]);
+      fprintf(yyTraceFILE,"%s%s '%s', pending reduce %d\n",
+         yyTracePrompt, zTag, yyTokenName[yypParser->yytos->major],
+         yyNewState - YY_MIN_REDUCE);
     }
   }
 }
 #else
-# define yyTraceShift(X,Y)
+# define yyTraceShift(X,Y,Z)
 #endif
 
 /*
@@ -774,8 +855,8 @@ static void yyTraceShift(yyParser *yypParser, int yyNewState){
 */
 static void yy_shift(
   yyParser *yypParser,          /* The parser to be shifted */
-  int yyNewState,               /* The new state to shift in */
-  int yyMajor,                  /* The major token to shift in */
+  YYACTIONTYPE yyNewState,      /* The new state to shift in */
+  YYCODETYPE yyMajor,           /* The major token to shift in */
   sqlite3Fts5ParserTOKENTYPE yyMinor        /* The minor token to shift in */
 ){
   yyStackEntry *yytos;
@@ -805,10 +886,10 @@ static void yy_shift(
     yyNewState += YY_MIN_REDUCE - YY_MIN_SHIFTREDUCE;
   }
   yytos = yypParser->yytos;
-  yytos->stateno = (YYACTIONTYPE)yyNewState;
-  yytos->major = (YYCODETYPE)yyMajor;
+  yytos->stateno = yyNewState;
+  yytos->major = yyMajor;
   yytos->minor.yy0 = yyMinor;
-  yyTraceShift(yypParser, yyNewState);
+  yyTraceShift(yypParser, yyNewState, "Shift");
 }
 
 /* The following table contains information about every rule that
@@ -818,33 +899,34 @@ static const struct {
   YYCODETYPE lhs;       /* Symbol on the left-hand side of the rule */
   signed char nrhs;     /* Negative of the number of RHS symbols in the rule */
 } yyRuleInfo[] = {
-  { 16, -1 },
-  { 20, -4 },
-  { 20, -3 },
-  { 20, -1 },
-  { 20, -2 },
-  { 21, -2 },
-  { 21, -1 },
-  { 17, -3 },
-  { 17, -3 },
-  { 17, -3 },
-  { 17, -5 },
-  { 17, -3 },
-  { 17, -1 },
-  { 19, -1 },
-  { 19, -2 },
-  { 18, -1 },
-  { 18, -3 },
-  { 22, -1 },
-  { 22, -5 },
-  { 23, -1 },
-  { 23, -2 },
-  { 25, 0 },
-  { 25, -2 },
-  { 24, -4 },
-  { 24, -2 },
-  { 26, -1 },
-  { 26, 0 },
+  {   16,   -1 }, /* (0) input ::= expr */
+  {   20,   -4 }, /* (1) colset ::= MINUS LCP colsetlist RCP */
+  {   20,   -3 }, /* (2) colset ::= LCP colsetlist RCP */
+  {   20,   -1 }, /* (3) colset ::= STRING */
+  {   20,   -2 }, /* (4) colset ::= MINUS STRING */
+  {   21,   -2 }, /* (5) colsetlist ::= colsetlist STRING */
+  {   21,   -1 }, /* (6) colsetlist ::= STRING */
+  {   17,   -3 }, /* (7) expr ::= expr AND expr */
+  {   17,   -3 }, /* (8) expr ::= expr OR expr */
+  {   17,   -3 }, /* (9) expr ::= expr NOT expr */
+  {   17,   -5 }, /* (10) expr ::= colset COLON LP expr RP */
+  {   17,   -3 }, /* (11) expr ::= LP expr RP */
+  {   17,   -1 }, /* (12) expr ::= exprlist */
+  {   19,   -1 }, /* (13) exprlist ::= cnearset */
+  {   19,   -2 }, /* (14) exprlist ::= exprlist cnearset */
+  {   18,   -1 }, /* (15) cnearset ::= nearset */
+  {   18,   -3 }, /* (16) cnearset ::= colset COLON nearset */
+  {   22,   -1 }, /* (17) nearset ::= phrase */
+  {   22,   -2 }, /* (18) nearset ::= CARET phrase */
+  {   22,   -5 }, /* (19) nearset ::= STRING LP nearphrases neardist_opt RP */
+  {   23,   -1 }, /* (20) nearphrases ::= phrase */
+  {   23,   -2 }, /* (21) nearphrases ::= nearphrases phrase */
+  {   25,    0 }, /* (22) neardist_opt ::= */
+  {   25,   -2 }, /* (23) neardist_opt ::= COMMA STRING */
+  {   24,   -4 }, /* (24) phrase ::= phrase PLUS STRING star_opt */
+  {   24,   -2 }, /* (25) phrase ::= STRING star_opt */
+  {   26,   -1 }, /* (26) star_opt ::= STAR */
+  {   26,    0 }, /* (27) star_opt ::= */
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */
@@ -852,22 +934,39 @@ static void yy_accept(yyParser*);  /* Forward Declaration */
 /*
 ** Perform a reduce action and the shift that must immediately
 ** follow the reduce.
+**
+** The yyLookahead and yyLookaheadToken parameters provide reduce actions
+** access to the lookahead token (if any).  The yyLookahead will be YYNOCODE
+** if the lookahead token has already been consumed.  As this procedure is
+** only called from one place, optimizing compilers will in-line it, which
+** means that the extra parameters have no performance impact.
 */
-static void yy_reduce(
+static YYACTIONTYPE yy_reduce(
   yyParser *yypParser,         /* The parser */
-  unsigned int yyruleno        /* Number of the rule by which to reduce */
+  unsigned int yyruleno,       /* Number of the rule by which to reduce */
+  int yyLookahead,             /* Lookahead token, or YYNOCODE if none */
+  sqlite3Fts5ParserTOKENTYPE yyLookaheadToken  /* Value of the lookahead token */
+  sqlite3Fts5ParserCTX_PDECL                   /* %extra_context */
 ){
   int yygoto;                     /* The next state */
-  int yyact;                      /* The next action */
+  YYACTIONTYPE yyact;             /* The next action */
   yyStackEntry *yymsp;            /* The top of the parser's stack */
   int yysize;                     /* Amount to pop the stack */
-  sqlite3Fts5ParserARG_FETCH;
+  sqlite3Fts5ParserARG_FETCH
+  (void)yyLookahead;
+  (void)yyLookaheadToken;
   yymsp = yypParser->yytos;
 #ifndef NDEBUG
   if( yyTraceFILE && yyruleno<(int)(sizeof(yyRuleName)/sizeof(yyRuleName[0])) ){
     yysize = yyRuleInfo[yyruleno].nrhs;
-    fprintf(yyTraceFILE, "%sReduce [%s], go to state %d.\n", yyTracePrompt,
-      yyRuleName[yyruleno], yymsp[yysize].stateno);
+    if( yysize ){
+      fprintf(yyTraceFILE, "%sReduce %d [%s], go to state %d.\n",
+        yyTracePrompt,
+        yyruleno, yyRuleName[yyruleno], yymsp[yysize].stateno);
+    }else{
+      fprintf(yyTraceFILE, "%sReduce %d [%s].\n",
+        yyTracePrompt, yyruleno, yyRuleName[yyruleno]);
+    }
   }
 #endif /* NDEBUG */
 
@@ -884,13 +983,19 @@ static void yy_reduce(
 #if YYSTACKDEPTH>0 
     if( yypParser->yytos>=yypParser->yystackEnd ){
       yyStackOverflow(yypParser);
-      return;
+      /* The call to yyStackOverflow() above pops the stack until it is
+      ** empty, causing the main parser loop to exit.  So the return value
+      ** is never used and does not matter. */
+      return 0;
     }
 #else
     if( yypParser->yytos>=&yypParser->yystack[yypParser->yystksz-1] ){
       if( yyGrowStack(yypParser) ){
         yyStackOverflow(yypParser);
-        return;
+        /* The call to yyStackOverflow() above pops the stack until it is
+        ** empty, causing the main parser loop to exit.  So the return value
+        ** is never used and does not matter. */
+        return 0;
       }
       yymsp = yypParser->yytos;
     }
@@ -911,26 +1016,26 @@ static void yy_reduce(
       case 0: /* input ::= expr */
 #line 82 "fts5parse.y"
 { sqlite3Fts5ParseFinished(pParse, yymsp[0].minor.yy24); }
-#line 915 "fts5parse.c"
+#line 1020 "fts5parse.c"
         break;
       case 1: /* colset ::= MINUS LCP colsetlist RCP */
 #line 97 "fts5parse.y"
 { 
     yymsp[-3].minor.yy11 = sqlite3Fts5ParseColsetInvert(pParse, yymsp[-1].minor.yy11);
 }
-#line 922 "fts5parse.c"
+#line 1027 "fts5parse.c"
         break;
       case 2: /* colset ::= LCP colsetlist RCP */
 #line 100 "fts5parse.y"
 { yymsp[-2].minor.yy11 = yymsp[-1].minor.yy11; }
-#line 927 "fts5parse.c"
+#line 1032 "fts5parse.c"
         break;
       case 3: /* colset ::= STRING */
 #line 101 "fts5parse.y"
 {
   yylhsminor.yy11 = sqlite3Fts5ParseColset(pParse, 0, &yymsp[0].minor.yy0);
 }
-#line 934 "fts5parse.c"
+#line 1039 "fts5parse.c"
   yymsp[0].minor.yy11 = yylhsminor.yy11;
         break;
       case 4: /* colset ::= MINUS STRING */
@@ -939,13 +1044,13 @@ static void yy_reduce(
   yymsp[-1].minor.yy11 = sqlite3Fts5ParseColset(pParse, 0, &yymsp[0].minor.yy0);
   yymsp[-1].minor.yy11 = sqlite3Fts5ParseColsetInvert(pParse, yymsp[-1].minor.yy11);
 }
-#line 943 "fts5parse.c"
+#line 1048 "fts5parse.c"
         break;
       case 5: /* colsetlist ::= colsetlist STRING */
 #line 109 "fts5parse.y"
 { 
   yylhsminor.yy11 = sqlite3Fts5ParseColset(pParse, yymsp[-1].minor.yy11, &yymsp[0].minor.yy0); }
-#line 949 "fts5parse.c"
+#line 1054 "fts5parse.c"
   yymsp[-1].minor.yy11 = yylhsminor.yy11;
         break;
       case 6: /* colsetlist ::= STRING */
@@ -953,7 +1058,7 @@ static void yy_reduce(
 { 
   yylhsminor.yy11 = sqlite3Fts5ParseColset(pParse, 0, &yymsp[0].minor.yy0); 
 }
-#line 957 "fts5parse.c"
+#line 1062 "fts5parse.c"
   yymsp[0].minor.yy11 = yylhsminor.yy11;
         break;
       case 7: /* expr ::= expr AND expr */
@@ -961,7 +1066,7 @@ static void yy_reduce(
 {
   yylhsminor.yy24 = sqlite3Fts5ParseNode(pParse, FTS5_AND, yymsp[-2].minor.yy24, yymsp[0].minor.yy24, 0);
 }
-#line 965 "fts5parse.c"
+#line 1070 "fts5parse.c"
   yymsp[-2].minor.yy24 = yylhsminor.yy24;
         break;
       case 8: /* expr ::= expr OR expr */
@@ -969,7 +1074,7 @@ static void yy_reduce(
 {
   yylhsminor.yy24 = sqlite3Fts5ParseNode(pParse, FTS5_OR, yymsp[-2].minor.yy24, yymsp[0].minor.yy24, 0);
 }
-#line 973 "fts5parse.c"
+#line 1078 "fts5parse.c"
   yymsp[-2].minor.yy24 = yylhsminor.yy24;
         break;
       case 9: /* expr ::= expr NOT expr */
@@ -977,7 +1082,7 @@ static void yy_reduce(
 {
   yylhsminor.yy24 = sqlite3Fts5ParseNode(pParse, FTS5_NOT, yymsp[-2].minor.yy24, yymsp[0].minor.yy24, 0);
 }
-#line 981 "fts5parse.c"
+#line 1086 "fts5parse.c"
   yymsp[-2].minor.yy24 = yylhsminor.yy24;
         break;
       case 10: /* expr ::= colset COLON LP expr RP */
@@ -986,19 +1091,19 @@ static void yy_reduce(
   sqlite3Fts5ParseSetColset(pParse, yymsp[-1].minor.yy24, yymsp[-4].minor.yy11);
   yylhsminor.yy24 = yymsp[-1].minor.yy24;
 }
-#line 990 "fts5parse.c"
+#line 1095 "fts5parse.c"
   yymsp[-4].minor.yy24 = yylhsminor.yy24;
         break;
       case 11: /* expr ::= LP expr RP */
 #line 129 "fts5parse.y"
 {yymsp[-2].minor.yy24 = yymsp[-1].minor.yy24;}
-#line 996 "fts5parse.c"
+#line 1101 "fts5parse.c"
         break;
       case 12: /* expr ::= exprlist */
       case 13: /* exprlist ::= cnearset */ yytestcase(yyruleno==13);
 #line 130 "fts5parse.y"
 {yylhsminor.yy24 = yymsp[0].minor.yy24;}
-#line 1002 "fts5parse.c"
+#line 1107 "fts5parse.c"
   yymsp[0].minor.yy24 = yylhsminor.yy24;
         break;
       case 14: /* exprlist ::= exprlist cnearset */
@@ -1006,7 +1111,7 @@ static void yy_reduce(
 {
   yylhsminor.yy24 = sqlite3Fts5ParseImplicitAnd(pParse, yymsp[-1].minor.yy24, yymsp[0].minor.yy24);
 }
-#line 1010 "fts5parse.c"
+#line 1115 "fts5parse.c"
   yymsp[-1].minor.yy24 = yylhsminor.yy24;
         break;
       case 15: /* cnearset ::= nearset */
@@ -1014,7 +1119,7 @@ static void yy_reduce(
 { 
   yylhsminor.yy24 = sqlite3Fts5ParseNode(pParse, FTS5_STRING, 0, 0, yymsp[0].minor.yy46); 
 }
-#line 1018 "fts5parse.c"
+#line 1123 "fts5parse.c"
   yymsp[0].minor.yy24 = yylhsminor.yy24;
         break;
       case 16: /* cnearset ::= colset COLON nearset */
@@ -1023,76 +1128,84 @@ static void yy_reduce(
   yylhsminor.yy24 = sqlite3Fts5ParseNode(pParse, FTS5_STRING, 0, 0, yymsp[0].minor.yy46); 
   sqlite3Fts5ParseSetColset(pParse, yylhsminor.yy24, yymsp[-2].minor.yy11);
 }
-#line 1027 "fts5parse.c"
+#line 1132 "fts5parse.c"
   yymsp[-2].minor.yy24 = yylhsminor.yy24;
         break;
       case 17: /* nearset ::= phrase */
 #line 151 "fts5parse.y"
 { yylhsminor.yy46 = sqlite3Fts5ParseNearset(pParse, 0, yymsp[0].minor.yy53); }
-#line 1033 "fts5parse.c"
+#line 1138 "fts5parse.c"
   yymsp[0].minor.yy46 = yylhsminor.yy46;
         break;
-      case 18: /* nearset ::= STRING LP nearphrases neardist_opt RP */
+      case 18: /* nearset ::= CARET phrase */
 #line 152 "fts5parse.y"
+{ 
+  sqlite3Fts5ParseSetCaret(yymsp[0].minor.yy53);
+  yymsp[-1].minor.yy46 = sqlite3Fts5ParseNearset(pParse, 0, yymsp[0].minor.yy53); 
+}
+#line 1147 "fts5parse.c"
+        break;
+      case 19: /* nearset ::= STRING LP nearphrases neardist_opt RP */
+#line 156 "fts5parse.y"
 {
   sqlite3Fts5ParseNear(pParse, &yymsp[-4].minor.yy0);
   sqlite3Fts5ParseSetDistance(pParse, yymsp[-2].minor.yy46, &yymsp[-1].minor.yy0);
   yylhsminor.yy46 = yymsp[-2].minor.yy46;
 }
-#line 1043 "fts5parse.c"
+#line 1156 "fts5parse.c"
   yymsp[-4].minor.yy46 = yylhsminor.yy46;
         break;
-      case 19: /* nearphrases ::= phrase */
-#line 158 "fts5parse.y"
+      case 20: /* nearphrases ::= phrase */
+#line 162 "fts5parse.y"
 { 
   yylhsminor.yy46 = sqlite3Fts5ParseNearset(pParse, 0, yymsp[0].minor.yy53); 
 }
-#line 1051 "fts5parse.c"
+#line 1164 "fts5parse.c"
   yymsp[0].minor.yy46 = yylhsminor.yy46;
         break;
-      case 20: /* nearphrases ::= nearphrases phrase */
-#line 161 "fts5parse.y"
+      case 21: /* nearphrases ::= nearphrases phrase */
+#line 165 "fts5parse.y"
 {
   yylhsminor.yy46 = sqlite3Fts5ParseNearset(pParse, yymsp[-1].minor.yy46, yymsp[0].minor.yy53);
 }
-#line 1059 "fts5parse.c"
+#line 1172 "fts5parse.c"
   yymsp[-1].minor.yy46 = yylhsminor.yy46;
         break;
-      case 21: /* neardist_opt ::= */
-#line 168 "fts5parse.y"
+      case 22: /* neardist_opt ::= */
+#line 172 "fts5parse.y"
 { yymsp[1].minor.yy0.p = 0; yymsp[1].minor.yy0.n = 0; }
-#line 1065 "fts5parse.c"
+#line 1178 "fts5parse.c"
         break;
-      case 22: /* neardist_opt ::= COMMA STRING */
-#line 169 "fts5parse.y"
+      case 23: /* neardist_opt ::= COMMA STRING */
+#line 173 "fts5parse.y"
 { yymsp[-1].minor.yy0 = yymsp[0].minor.yy0; }
-#line 1070 "fts5parse.c"
+#line 1183 "fts5parse.c"
         break;
-      case 23: /* phrase ::= phrase PLUS STRING star_opt */
-#line 181 "fts5parse.y"
+      case 24: /* phrase ::= phrase PLUS STRING star_opt */
+#line 185 "fts5parse.y"
 { 
   yylhsminor.yy53 = sqlite3Fts5ParseTerm(pParse, yymsp[-3].minor.yy53, &yymsp[-1].minor.yy0, yymsp[0].minor.yy4);
 }
-#line 1077 "fts5parse.c"
+#line 1190 "fts5parse.c"
   yymsp[-3].minor.yy53 = yylhsminor.yy53;
         break;
-      case 24: /* phrase ::= STRING star_opt */
-#line 184 "fts5parse.y"
+      case 25: /* phrase ::= STRING star_opt */
+#line 188 "fts5parse.y"
 { 
   yylhsminor.yy53 = sqlite3Fts5ParseTerm(pParse, 0, &yymsp[-1].minor.yy0, yymsp[0].minor.yy4);
 }
-#line 1085 "fts5parse.c"
+#line 1198 "fts5parse.c"
   yymsp[-1].minor.yy53 = yylhsminor.yy53;
         break;
-      case 25: /* star_opt ::= STAR */
-#line 193 "fts5parse.y"
+      case 26: /* star_opt ::= STAR */
+#line 196 "fts5parse.y"
 { yymsp[0].minor.yy4 = 1; }
-#line 1091 "fts5parse.c"
+#line 1204 "fts5parse.c"
         break;
-      case 26: /* star_opt ::= */
-#line 194 "fts5parse.y"
+      case 27: /* star_opt ::= */
+#line 197 "fts5parse.y"
 { yymsp[1].minor.yy4 = 0; }
-#line 1096 "fts5parse.c"
+#line 1209 "fts5parse.c"
         break;
       default:
         break;
@@ -1110,16 +1223,12 @@ static void yy_reduce(
   /* It is not possible for a REDUCE to be followed by an error */
   assert( yyact!=YY_ERROR_ACTION );
 
-  if( yyact==YY_ACCEPT_ACTION ){
-    yypParser->yytos += yysize;
-    yy_accept(yypParser);
-  }else{
-    yymsp += yysize+1;
-    yypParser->yytos = yymsp;
-    yymsp->stateno = (YYACTIONTYPE)yyact;
-    yymsp->major = (YYCODETYPE)yygoto;
-    yyTraceShift(yypParser, yyact);
-  }
+  yymsp += yysize+1;
+  yypParser->yytos = yymsp;
+  yymsp->stateno = (YYACTIONTYPE)yyact;
+  yymsp->major = (YYCODETYPE)yygoto;
+  yyTraceShift(yypParser, yyact, "... then shift");
+  return yyact;
 }
 
 /*
@@ -1129,7 +1238,8 @@ static void yy_reduce(
 static void yy_parse_failed(
   yyParser *yypParser           /* The parser */
 ){
-  sqlite3Fts5ParserARG_FETCH;
+  sqlite3Fts5ParserARG_FETCH
+  sqlite3Fts5ParserCTX_FETCH
 #ifndef NDEBUG
   if( yyTraceFILE ){
     fprintf(yyTraceFILE,"%sFail!\n",yyTracePrompt);
@@ -1140,7 +1250,8 @@ static void yy_parse_failed(
   ** parser fails */
 /************ Begin %parse_failure code ***************************************/
 /************ End %parse_failure code *****************************************/
-  sqlite3Fts5ParserARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  sqlite3Fts5ParserARG_STORE /* Suppress warning about unused %extra_argument variable */
+  sqlite3Fts5ParserCTX_STORE
 }
 #endif /* YYNOERRORRECOVERY */
 
@@ -1152,7 +1263,8 @@ static void yy_syntax_error(
   int yymajor,                   /* The major type of the error token */
   sqlite3Fts5ParserTOKENTYPE yyminor         /* The minor type of the error token */
 ){
-  sqlite3Fts5ParserARG_FETCH;
+  sqlite3Fts5ParserARG_FETCH
+  sqlite3Fts5ParserCTX_FETCH
 #define TOKEN yyminor
 /************ Begin %syntax_error code ****************************************/
 #line 30 "fts5parse.y"
@@ -1161,9 +1273,10 @@ static void yy_syntax_error(
   sqlite3Fts5ParseError(
     pParse, "fts5: syntax error near \"%.*s\"",TOKEN.n,TOKEN.p
   );
-#line 1165 "fts5parse.c"
+#line 1277 "fts5parse.c"
 /************ End %syntax_error code ******************************************/
-  sqlite3Fts5ParserARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  sqlite3Fts5ParserARG_STORE /* Suppress warning about unused %extra_argument variable */
+  sqlite3Fts5ParserCTX_STORE
 }
 
 /*
@@ -1172,7 +1285,8 @@ static void yy_syntax_error(
 static void yy_accept(
   yyParser *yypParser           /* The parser */
 ){
-  sqlite3Fts5ParserARG_FETCH;
+  sqlite3Fts5ParserARG_FETCH
+  sqlite3Fts5ParserCTX_FETCH
 #ifndef NDEBUG
   if( yyTraceFILE ){
     fprintf(yyTraceFILE,"%sAccept!\n",yyTracePrompt);
@@ -1186,7 +1300,8 @@ static void yy_accept(
   ** parser accepts */
 /*********** Begin %parse_accept code *****************************************/
 /*********** End %parse_accept code *******************************************/
-  sqlite3Fts5ParserARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  sqlite3Fts5ParserARG_STORE /* Suppress warning about unused %extra_argument variable */
+  sqlite3Fts5ParserCTX_STORE
 }
 
 /* The main parser program.
@@ -1215,38 +1330,51 @@ void sqlite3Fts5Parser(
   sqlite3Fts5ParserARG_PDECL               /* Optional %extra_argument parameter */
 ){
   YYMINORTYPE yyminorunion;
-  unsigned int yyact;   /* The parser action. */
+  YYACTIONTYPE yyact;   /* The parser action. */
 #if !defined(YYERRORSYMBOL) && !defined(YYNOERRORRECOVERY)
   int yyendofinput;     /* True if we are at the end of input */
 #endif
 #ifdef YYERRORSYMBOL
   int yyerrorhit = 0;   /* True if yymajor has invoked an error */
 #endif
-  yyParser *yypParser;  /* The parser */
+  yyParser *yypParser = (yyParser*)yyp;  /* The parser */
+  sqlite3Fts5ParserCTX_FETCH
+  sqlite3Fts5ParserARG_STORE
 
-  yypParser = (yyParser*)yyp;
   assert( yypParser->yytos!=0 );
 #if !defined(YYERRORSYMBOL) && !defined(YYNOERRORRECOVERY)
   yyendofinput = (yymajor==0);
 #endif
-  sqlite3Fts5ParserARG_STORE;
 
+  yyact = yypParser->yytos->stateno;
 #ifndef NDEBUG
   if( yyTraceFILE ){
-    fprintf(yyTraceFILE,"%sInput '%s'\n",yyTracePrompt,yyTokenName[yymajor]);
+    if( yyact < YY_MIN_REDUCE ){
+      fprintf(yyTraceFILE,"%sInput '%s' in state %d\n",
+              yyTracePrompt,yyTokenName[yymajor],yyact);
+    }else{
+      fprintf(yyTraceFILE,"%sInput '%s' with pending reduce %d\n",
+              yyTracePrompt,yyTokenName[yymajor],yyact-YY_MIN_REDUCE);
+    }
   }
 #endif
 
   do{
-    yyact = yy_find_shift_action(yypParser,(YYCODETYPE)yymajor);
-    if( yyact <= YY_MAX_SHIFTREDUCE ){
-      yy_shift(yypParser,yyact,yymajor,yyminor);
+    assert( yyact==yypParser->yytos->stateno );
+    yyact = yy_find_shift_action((YYCODETYPE)yymajor,yyact);
+    if( yyact >= YY_MIN_REDUCE ){
+      yyact = yy_reduce(yypParser,yyact-YY_MIN_REDUCE,yymajor,
+                        yyminor sqlite3Fts5ParserCTX_PARAM);
+    }else if( yyact <= YY_MAX_SHIFTREDUCE ){
+      yy_shift(yypParser,yyact,(YYCODETYPE)yymajor,yyminor);
 #ifndef YYNOERRORRECOVERY
       yypParser->yyerrcnt--;
 #endif
-      yymajor = YYNOCODE;
-    }else if( yyact <= YY_MAX_REDUCE ){
-      yy_reduce(yypParser,yyact-YY_MIN_REDUCE);
+      break;
+    }else if( yyact==YY_ACCEPT_ACTION ){
+      yypParser->yytos--;
+      yy_accept(yypParser);
+      return;
     }else{
       assert( yyact == YY_ERROR_ACTION );
       yyminorunion.yy0 = yyminor;
@@ -1293,10 +1421,9 @@ void sqlite3Fts5Parser(
         yymajor = YYNOCODE;
       }else{
         while( yypParser->yytos >= yypParser->yystack
-            && yymx != YYERRORSYMBOL
             && (yyact = yy_find_reduce_action(
                         yypParser->yytos->stateno,
-                        YYERRORSYMBOL)) >= YY_MIN_REDUCE
+                        YYERRORSYMBOL)) > YY_MAX_SHIFTREDUCE
         ){
           yy_pop_parser_stack(yypParser);
         }
@@ -1313,6 +1440,8 @@ void sqlite3Fts5Parser(
       }
       yypParser->yyerrcnt = 3;
       yyerrorhit = 1;
+      if( yymajor==YYNOCODE ) break;
+      yyact = yypParser->yytos->stateno;
 #elif defined(YYNOERRORRECOVERY)
       /* If the YYNOERRORRECOVERY macro is defined, then do not attempt to
       ** do any kind of error recovery.  Instead, simply invoke the syntax
@@ -1323,8 +1452,7 @@ void sqlite3Fts5Parser(
       */
       yy_syntax_error(yypParser,yymajor, yyminor);
       yy_destructor(yypParser,(YYCODETYPE)yymajor,&yyminorunion);
-      yymajor = YYNOCODE;
-      
+      break;
 #else  /* YYERRORSYMBOL is not defined */
       /* This is what we do if the grammar does not define ERROR:
       **
@@ -1346,10 +1474,10 @@ void sqlite3Fts5Parser(
         yypParser->yyerrcnt = -1;
 #endif
       }
-      yymajor = YYNOCODE;
+      break;
 #endif
     }
-  }while( yymajor!=YYNOCODE && yypParser->yytos>yypParser->yystack );
+  }while( yypParser->yytos>yypParser->yystack );
 #ifndef NDEBUG
   if( yyTraceFILE ){
     yyStackEntry *i;
@@ -1363,4 +1491,19 @@ void sqlite3Fts5Parser(
   }
 #endif
   return;
+}
+
+/*
+** Return the fallback token corresponding to canonical token iToken, or
+** 0 if iToken has no fallback.
+*/
+int sqlite3Fts5ParserFallback(int iToken){
+#ifdef YYFALLBACK
+  if( iToken<(int)(sizeof(yyFallback)/sizeof(yyFallback[0])) ){
+    return yyFallback[iToken];
+  }
+#else
+  (void)iToken;
+#endif
+  return 0;
 }
