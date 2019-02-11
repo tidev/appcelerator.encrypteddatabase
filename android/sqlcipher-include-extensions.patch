@@ -1,0 +1,199 @@
+From 0add44dc52a570ff2ac586c236b0b5af9f8dee81 Mon Sep 17 00:00:00 2001
+From: Gary Mathews <gmathews@appcelerator.com>
+Date: Fri, 8 Feb 2019 15:37:43 -0800
+Subject: [PATCH] feat: include extensions
+
+---
+ Makefile.in         |  9 +++++++++
+ ext/misc/sha1.c     |  8 ++++----
+ ext/misc/shathree.c |  8 ++++----
+ src/main.c          | 46 +++++++++++++++++++++++++++++++++++++++++++++
+ tool/mksqlite3c.tcl | 10 ++++++++++
+ 5 files changed, 73 insertions(+), 8 deletions(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index 1c5e204..4405730 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -384,6 +384,15 @@ SRC += \
+   $(TOP)/ext/rbu/sqlite3rbu.c
+ SRC += \
+   $(TOP)/ext/misc/json1.c \
++  $(TOP)/ext/misc/compress.c \
++  $(TOP)/ext/misc/closure.c \
++  $(TOP)/ext/misc/csv.c \
++  $(TOP)/ext/misc/eval.c \
++  $(TOP)/ext/misc/fileio.c \
++  $(TOP)/ext/misc/regexp.c \
++  $(TOP)/ext/misc/sha1.c \
++  $(TOP)/ext/misc/shathree.c \
++  $(TOP)/ext/misc/zipfile.c \
+   $(TOP)/ext/misc/stmt.c
+ 
+ # Generated source code files
+diff --git a/ext/misc/sha1.c b/ext/misc/sha1.c
+index 886b1db..6688acd 100644
+--- a/ext/misc/sha1.c
++++ b/ext/misc/sha1.c
+@@ -191,7 +191,7 @@ static void hash_step(
+ }
+ 
+ /* Compute a string using sqlite3_vsnprintf() and hash it */
+-static void hash_step_vformat(
++static void sha1_hash_step_vformat(
+   SHA1Context *p,                 /* Add content to this context */
+   const char *zFormat,
+   ...
+@@ -322,7 +322,7 @@ static void sha1QueryFunc(
+     nCol = sqlite3_column_count(pStmt);
+     z = sqlite3_sql(pStmt);
+     n = (int)strlen(z);
+-    hash_step_vformat(&cx,"S%d:",n);
++    sha1_hash_step_vformat(&cx,"S%d:",n);
+     hash_step(&cx,(unsigned char*)z,n);
+ 
+     /* Compute a hash over the result of the query */
+@@ -365,14 +365,14 @@ static void sha1QueryFunc(
+           case SQLITE_TEXT: {
+             int n2 = sqlite3_column_bytes(pStmt, i);
+             const unsigned char *z2 = sqlite3_column_text(pStmt, i);
+-            hash_step_vformat(&cx,"T%d:",n2);
++            sha1_hash_step_vformat(&cx,"T%d:",n2);
+             hash_step(&cx, z2, n2);
+             break;
+           }
+           case SQLITE_BLOB: {
+             int n2 = sqlite3_column_bytes(pStmt, i);
+             const unsigned char *z2 = sqlite3_column_blob(pStmt, i);
+-            hash_step_vformat(&cx,"B%d:",n2);
++            sha1_hash_step_vformat(&cx,"B%d:",n2);
+             hash_step(&cx, z2, n2);
+             break;
+           }
+diff --git a/ext/misc/shathree.c b/ext/misc/shathree.c
+index e35fa49..67160aa 100644
+--- a/ext/misc/shathree.c
++++ b/ext/misc/shathree.c
+@@ -527,7 +527,7 @@ static void sha3Func(
+ /* Compute a string using sqlite3_vsnprintf() with a maximum length
+ ** of 50 bytes and add it to the hash.
+ */
+-static void hash_step_vformat(
++static void sha3_hash_step_vformat(
+   SHA3Context *p,                 /* Add content to this context */
+   const char *zFormat,
+   ...
+@@ -622,7 +622,7 @@ static void sha3QueryFunc(
+     nCol = sqlite3_column_count(pStmt);
+     z = sqlite3_sql(pStmt);
+     n = (int)strlen(z);
+-    hash_step_vformat(&cx,"S%d:",n);
++    sha3_hash_step_vformat(&cx,"S%d:",n);
+     SHA3Update(&cx,(unsigned char*)z,n);
+ 
+     /* Compute a hash over the result of the query */
+@@ -665,14 +665,14 @@ static void sha3QueryFunc(
+           case SQLITE_TEXT: {
+             int n2 = sqlite3_column_bytes(pStmt, i);
+             const unsigned char *z2 = sqlite3_column_text(pStmt, i);
+-            hash_step_vformat(&cx,"T%d:",n2);
++            sha3_hash_step_vformat(&cx,"T%d:",n2);
+             SHA3Update(&cx, z2, n2);
+             break;
+           }
+           case SQLITE_BLOB: {
+             int n2 = sqlite3_column_bytes(pStmt, i);
+             const unsigned char *z2 = sqlite3_column_blob(pStmt, i);
+-            hash_step_vformat(&cx,"B%d:",n2);
++            sha3_hash_step_vformat(&cx,"B%d:",n2);
+             SHA3Update(&cx, z2, n2);
+             break;
+           }
+diff --git a/src/main.c b/src/main.c
+index 46c8346..60815cb 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -35,6 +35,16 @@ int sqlite3StmtVtabInit(sqlite3*);
+ int sqlite3Fts5Init(sqlite3*);
+ #endif
+ 
++SQLITE_API int sqlite3_closure_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_compress_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_csv_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_eval_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_fileio_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_regexp_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_sha_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_shathree_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++SQLITE_API int sqlite3_zipfile_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
++
+ #ifndef SQLITE_AMALGAMATION
+ /* IMPLEMENTATION-OF: R-46656-45156 The sqlite3_version[] string constant
+ ** contains the text of SQLITE_VERSION macro. 
+@@ -3237,6 +3247,42 @@ static int openDatabase(
+   }
+ #endif
+ 
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_closure_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_compress_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_csv_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_eval_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_fileio_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_regexp_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_sha_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_shathree_init(db, NULL, NULL);
++}
++
++if( !db->mallocFailed && rc==SQLITE_OK){
++  rc = sqlite3_zipfile_init(db, NULL, NULL);
++}
++
+   /* -DSQLITE_DEFAULT_LOCKING_MODE=1 makes EXCLUSIVE the default locking
+   ** mode.  -DSQLITE_DEFAULT_LOCKING_MODE=0 make NORMAL the default locking
+   ** mode.  Doing nothing at all also makes NORMAL the default.
+diff --git a/tool/mksqlite3c.tcl b/tool/mksqlite3c.tcl
+index 5a1de8b..d7d8f82 100644
+--- a/tool/mksqlite3c.tcl
++++ b/tool/mksqlite3c.tcl
+@@ -406,6 +406,16 @@ foreach file {
+    rtree.c
+    icu.c
+ 
++   compress.c
++   closure.c
++   csv.c
++   eval.c
++   fileio.c
++   regexp.c
++   sha1.c
++   shathree.c
++   zipfile.c
++
+    fts3_icu.c
+    sqlite3rbu.c
+    dbstat.c
+-- 
+2.17.2 (Apple Git-113)
+
