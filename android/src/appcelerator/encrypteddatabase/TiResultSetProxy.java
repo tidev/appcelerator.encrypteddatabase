@@ -101,7 +101,7 @@ public class TiResultSetProxy extends KrollProxy {
 				if (columnType == android.database.Cursor.FIELD_TYPE_FLOAT) {
 					result = cursor.getDouble(index);
 				} else if (columnType == android.database.Cursor.FIELD_TYPE_INTEGER) {
-					result = cursor.getInt(index);
+					result = cursor.getLong(index);
 				} else if (columnType == android.database.Cursor.FIELD_TYPE_NULL) {
 					result = null;
 				} else if (columnType == android.database.Cursor.FIELD_TYPE_BLOB) {

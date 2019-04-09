@@ -62,36 +62,40 @@ public class EncrypteddatabaseModule extends KrollModule {
 
 	@Kroll.method
 	public TiDatabaseProxy open(Object file) {
+		// Attempt to create/open the given database file/name.
 		TiDatabaseProxy dbp = null;
+		if (file instanceof TiFileProxy) {
+			// File support is read-only for now. The NO_LOCALIZED_COLLATORS
+			// flag means the database doesn't have Android metadata (i.e.
+			// vanilla)
+			TiFileProxy tiFile = (TiFileProxy) file;
+			String absolutePath = tiFile.getBaseFile().getNativeFile().getAbsolutePath();
+			Log.d(TAG, "Opening database from filesystem: " + absolutePath);
 
-		try {
-			if (file instanceof TiFileProxy) {
-				// File support is read-only for now. The NO_LOCALIZED_COLLATORS
-				// flag means the database doesn't have Android metadata (i.e.
-				// vanilla)
-				TiFileProxy tiFile = (TiFileProxy) file;
-				String absolutePath = tiFile.getBaseFile().getNativeFile().getAbsolutePath();
-				Log.d(TAG, "Opening database from filesystem: " + absolutePath);
-
-				SQLiteDatabase db = SQLiteDatabase.openDatabase(absolutePath, getPassword(), null,
-						SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+			SQLiteDatabase db = SQLiteDatabase.openDatabase(absolutePath, getPassword(), null,
+					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+			if (db != null) {
 				dbp = new TiDatabaseProxy(db);
 			} else {
-				String name = TiConvert.toString(file);
-				Context ctx = TiApplication.getInstance();
-				File dbPath = ctx.getDatabasePath(name);
-				SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null);
-				dbp = new TiDatabaseProxy(name, db);
+				throw new RuntimeException("SQLiteDatabase.openDatabase() returned null for path: " + absolutePath);
 			}
-
-			Log.d(TAG, "Opened database: " + dbp.getName(), Log.DEBUG_MODE);
-
-		} catch (SQLException e) {
-			String msg = "Error opening database: " + dbp.getName() + " msg=" + e.getMessage();
-			Log.e(TAG, msg, e);
-			throw e;
+		} else if (file instanceof String) {
+			String name = (String) file;
+			File dbPath = TiApplication.getInstance().getDatabasePath(name);
+			SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null);
+			if (db != null) {
+				dbp = new TiDatabaseProxy(name, db);
+			} else {
+				throw new RuntimeException("SQLiteDatabase.openOrCreateDatabase() returned null for name: " + name);
+			}
+		} else if (file != null) {
+			throw new IllegalArgumentException("open() argument must be of type 'String' or 'File'.");
+		} else {
+			throw new IllegalArgumentException("open() was given a null argument.");
 		}
 
+		// Return a proxy to the opened database.
+		Log.d(TAG, "Opened database: " + dbp.getName(), Log.DEBUG_MODE);
 		return dbp;
 	}
 
