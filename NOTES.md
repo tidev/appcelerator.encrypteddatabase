@@ -1,0 +1,3 @@
+- Had to run `ti sdk select 7.5.0.GA` to select same version of SDK as in package.json config
+- Had to change ios/titanium.xcconfig to use same SDK version as in package.json/selected above
+- 
