@@ -333,6 +333,7 @@
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
 					"-DSQLITE_EXTENSION_INIT1",
+					"-DUSE_TI_APP",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
@@ -382,6 +383,7 @@
 					"-DSQLITE_THREADSAFE",
 					"-DSQLCIPHER_CRYPTO_CC",
 					"-DSQLITE_EXTENSION_INIT1",
+					"-DUSE_TI_APP",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
@@ -431,6 +433,7 @@
 					"-DSQLITE_CORE",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLITE_EXTENSION_INIT1",
+					"-DUSE_TI_APP",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
@@ -480,6 +483,7 @@
 					"-DSQLITE_CORE",
 					"-DSQLITE_THREADSAFE",
 					"-DSQLITE_EXTENSION_INIT1",
+					"-DUSE_TI_APP",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
