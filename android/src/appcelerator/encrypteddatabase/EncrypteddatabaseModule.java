@@ -82,6 +82,7 @@ public class EncrypteddatabaseModule extends KrollModule {
 		} else if (file instanceof String) {
 			String name = (String) file;
 			File dbPath = TiApplication.getInstance().getDatabasePath(name);
+			dbPath.getParentFile().mkdirs();
 			SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null);
 			if (db != null) {
 				dbp = new TiDatabaseProxy(name, db);
