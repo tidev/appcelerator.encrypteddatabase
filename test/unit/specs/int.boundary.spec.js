@@ -9,7 +9,7 @@ describe('appcelerator.encrypteddatabase', function () {
 
 	// Integer boundary tests.
 	// Verify we can read/write largest/smallest 64-bit int values supported by JS number type.
-	xit('db read/write integer boundaries', function () {
+	it('db read/write integer boundaries', function () {
 		const MAX_SIGNED_INT32 = 2147483647;
 		const MIN_SIGNED_INT32 = -2147483648;
 		const MAX_SIGNED_INT16 = 32767;
@@ -30,7 +30,7 @@ describe('appcelerator.encrypteddatabase', function () {
 			Number.MIN_SAFE_INTEGER
 		];
 
-		const dbConnection = db.install('int_test.db');
+		const dbConnection = db.open('int_test.db');
 		dbConnection.execute('CREATE TABLE IF NOT EXISTS intTable(id INTEGER PRIMARY KEY, intValue INTEGER);');
 		dbConnection.execute('DELETE FROM intTable;');
 		for (let index = 0; index < rows.length; index++) {
