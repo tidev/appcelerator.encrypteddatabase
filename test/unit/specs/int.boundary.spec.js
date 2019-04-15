@@ -5,6 +5,9 @@ describe('appcelerator.encrypteddatabase', function () {
 	it('can be required', () => {
 		db = require('appcelerator.encrypteddatabase');
 		expect(db).toBeDefined();
+		// Must use a static password, karma re-generates new project each time
+		// and default is to use app guid, which will change each time.
+		db.password = 'test123';
 	});
 
 	// Integer boundary tests.
