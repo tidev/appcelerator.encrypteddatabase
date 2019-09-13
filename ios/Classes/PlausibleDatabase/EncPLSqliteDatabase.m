@@ -229,18 +229,36 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     char *errMsg;
-    //disable hmac cipher for backwards compatibility
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_use_hmac = OFF;" UTF8String], NULL, NULL, &errMsg);
+
+    //prepare existing database for migration
+    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_page_size = 1024;" UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
         [self populateError: error
               withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
-                description: NSLocalizedString(@"Cipher migrate: failed to disable hmac cipher.", @"")
+                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
                 queryString: nil];
         return NO;
     }
-    //prepare existing database for migration
-    err = sqlite3_exec(_sqlite, [@"PRAGMA kdf_iter = 4000;" UTF8String], NULL, NULL, &errMsg);
+    err = sqlite3_exec(_sqlite, [@"PRAGMA kdf_iter = 64000;" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                queryString: nil];
+        return NO;
+    }
+    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_hmac_algorithm = HMAC_SHA1;" UTF8String], NULL, NULL, &errMsg);
+    if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                queryString: nil];
+        return NO;
+    }
+    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA1;" UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
         [self populateError: error
