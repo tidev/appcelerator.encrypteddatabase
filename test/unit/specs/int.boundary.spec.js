@@ -42,7 +42,7 @@ describe('appcelerator.encrypteddatabase', function () {
 		const resultSet = dbConnection.execute('SELECT id, intValue FROM intTable ORDER BY id');
 		expect(resultSet.rowCount).toEqual(rows.length);
 		for (let index = 0; resultSet.isValidRow(); resultSet.next(), index++) {
-			expect(resultSet.field(1, db.FIELD_TYPE_INT)).toEqual(rows[index]);
+			expect(parseInt(resultSet.field(1))).toEqual(rows[index]);
 		}
 		dbConnection.close();
 	});
