@@ -14,7 +14,7 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.database.Cursor;
-import net.sqlcipher.CrossProcessCursorWrapper;
+import net.sqlcipher.AbstractWindowedCursor;
 import net.sqlcipher.SQLException;
 import android.os.Build;
 
@@ -95,16 +95,16 @@ public class TiResultSetProxy extends KrollProxy {
 		boolean fromString = false;
 
 		try {
-			if (rs instanceof CrossProcessCursorWrapper) {
-				CrossProcessCursorWrapper cursor = (CrossProcessCursorWrapper) rs;
-				int columnType = cursor.getType(index);
-				if (columnType == android.database.Cursor.FIELD_TYPE_FLOAT) {
+			if (rs instanceof AbstractWindowedCursor) {
+				AbstractWindowedCursor cursor = (AbstractWindowedCursor) rs;
+
+				if (cursor.isFloat(index)) {
 					result = cursor.getDouble(index);
-				} else if (columnType == android.database.Cursor.FIELD_TYPE_INTEGER) {
+				} else if (cursor.isLong(index)) {
 					result = cursor.getLong(index);
-				} else if (columnType == android.database.Cursor.FIELD_TYPE_NULL) {
+				} else if (cursor.isNull(index)) {
 					result = null;
-				} else if (columnType == android.database.Cursor.FIELD_TYPE_BLOB) {
+				} else if (cursor.isBlob(index)) {
 					result = TiBlob.blobFromData(cursor.getBlob(index));
 				} else {
 					fromString = true;
@@ -123,11 +123,9 @@ public class TiResultSetProxy extends KrollProxy {
 				throw new IllegalStateException("Requested column number " + index + " does not exist");
 			}
 		} catch (RuntimeException e) {
-			// Both SQLException and IllegalStateException (exceptions known to
-			// occur
+			// Both SQLException and IllegalStateException (exceptions known to occur
 			// in this block) are RuntimeExceptions and since we anyway re-throw
-			// and log the same error message, we're just catching all
-			// RuntimeExceptions.
+			// and log the same error message, we're just catching all RuntimeExceptions.
 			Log.e(TAG, "Exception getting value for column " + index + ": " + e.getMessage(), e);
 			throw e;
 		}
@@ -139,7 +137,7 @@ public class TiResultSetProxy extends KrollProxy {
 				}
 				break;
 			case EncrypteddatabaseModule.FIELD_TYPE_INT:
-				if (!(result instanceof Integer)) {
+				if (!(result instanceof Integer) && !(result instanceof Long)) {
 					result = TiConvert.toInt(result);
 				}
 				break;

@@ -21,13 +21,13 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiFileProxy;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
-import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
 
-import android.app.Activity;
 import android.content.Context;
+
 import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteDatabaseHook;
 
 @Kroll.module(name = "Encrypteddatabase", id = "appcelerator.encrypteddatabase")
 public class EncrypteddatabaseModule extends KrollModule {
@@ -64,6 +64,15 @@ public class EncrypteddatabaseModule extends KrollModule {
 	public TiDatabaseProxy open(Object file) {
 		// Attempt to create/open the given database file/name.
 		TiDatabaseProxy dbp = null;
+
+		// Migrate database if necessary.
+		final SQLiteDatabaseHook migrationHook = new SQLiteDatabaseHook() {
+			public void preKey(SQLiteDatabase database) {}
+			public void postKey(SQLiteDatabase database) {
+				database.rawExecSQL("PRAGMA cipher_migrate;");
+			}
+		};
+
 		if (file instanceof TiFileProxy) {
 			// File support is read-only for now. The NO_LOCALIZED_COLLATORS
 			// flag means the database doesn't have Android metadata (i.e.
@@ -73,7 +82,7 @@ public class EncrypteddatabaseModule extends KrollModule {
 			Log.d(TAG, "Opening database from filesystem: " + absolutePath);
 
 			SQLiteDatabase db = SQLiteDatabase.openDatabase(absolutePath, getPassword(), null,
-					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS, migrationHook);
 			if (db != null) {
 				dbp = new TiDatabaseProxy(db);
 			} else {
@@ -83,7 +92,7 @@ public class EncrypteddatabaseModule extends KrollModule {
 			String name = (String) file;
 			File dbPath = TiApplication.getInstance().getDatabasePath(name);
 			dbPath.getParentFile().mkdirs();
-			SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null);
+			SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null, migrationHook);
 			if (db != null) {
 				dbp = new TiDatabaseProxy(name, db);
 			} else {
