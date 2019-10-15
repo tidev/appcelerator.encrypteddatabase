@@ -4,6 +4,7 @@
   "description": "Provides transparent, secure 256-bit AES encryption of SQLite database files.",
   "private": true,
   "scripts": {
+    "commit": "git-cz",
     "test": "karma start test/unit/karma.unit.config.js",
     "test:android": "npm test -- --browsers android",
     "test:ios": "npm test -- --browsers ios"
@@ -59,5 +60,10 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
