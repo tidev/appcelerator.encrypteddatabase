@@ -33,5 +33,10 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-titanium-launcher": "^0.5.1",
     "socket.io": "^2.2.0"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   }
 }
