@@ -19,7 +19,8 @@ import net.sqlcipher.SQLException;
 import android.os.Build;
 
 @Kroll.proxy(parentModule = EncrypteddatabaseModule.class)
-public class TiResultSetProxy extends KrollProxy {
+public class TiResultSetProxy extends KrollProxy
+{
 	private static final String TAG = "TiResultSet";
 
 	protected Cursor rs;
@@ -28,7 +29,8 @@ public class TiResultSetProxy extends KrollProxy {
 													// matching in Google's
 													// implementation
 
-	public TiResultSetProxy(Cursor rs) {
+	public TiResultSetProxy(Cursor rs)
+	{
 		super();
 
 		this.rs = rs;
@@ -40,27 +42,30 @@ public class TiResultSetProxy extends KrollProxy {
 	}
 
 	@Kroll.method
-	public void close() {
+	public void close()
+	{
 		if (rs != null && !rs.isClosed()) {
 			Log.d(TAG, "Closing database cursor", Log.DEBUG_MODE);
 			rs.close();
 		} else {
 			Log.w(TAG, "Calling close on a closed cursor.", Log.DEBUG_MODE);
 		}
-
 	}
 
 	@Kroll.method
-	public Object field(Object[] args) {
+	public Object field(Object[] args)
+	{
 		return internalGetField(args);
 	}
 
 	@Kroll.method
-	public Object getField(Object[] args) {
+	public Object getField(Object[] args)
+	{
 		return internalGetField(args);
 	}
 
-	private Object internalGetField(Object[] args) {
+	private Object internalGetField(Object[] args)
+	{
 		int index = -1;
 		int type = EncrypteddatabaseModule.FIELD_TYPE_UNKNOWN;
 		if (args.length >= 1) {
@@ -68,9 +73,10 @@ public class TiResultSetProxy extends KrollProxy {
 				index = TiConvert.toInt(args[0]);
 			} else {
 				(new IllegalArgumentException("Expected int column index as first parameter was "
-						+ args[0].getClass().getSimpleName())).printStackTrace();
+											  + args[0].getClass().getSimpleName()))
+					.printStackTrace();
 				throw new IllegalArgumentException("Expected int column index as first parameter was "
-						+ args[0].getClass().getSimpleName());
+												   + args[0].getClass().getSimpleName());
 			}
 		}
 		if (args.length == 2) {
@@ -78,14 +84,15 @@ public class TiResultSetProxy extends KrollProxy {
 				type = TiConvert.toInt(args[1]);
 			} else {
 				throw new IllegalArgumentException("Expected int field type as second parameter was "
-						+ args[1].getClass().getSimpleName());
+												   + args[1].getClass().getSimpleName());
 			}
 		}
 
 		return internalGetField(index, type);
 	}
 
-	private Object internalGetField(int index, int type) {
+	private Object internalGetField(int index, int type)
+	{
 		if (rs == null) {
 			Log.w(TAG, "Attempted to get field value when no result set is available.");
 			return null;
@@ -156,16 +163,19 @@ public class TiResultSetProxy extends KrollProxy {
 	}
 
 	@Kroll.method
-	public Object fieldByName(Object[] args) {
+	public Object fieldByName(Object[] args)
+	{
 		return internalGetFieldByName(args);
 	}
 
 	@Kroll.method
-	public Object getFieldByName(Object[] args) {
+	public Object getFieldByName(Object[] args)
+	{
 		return internalGetFieldByName(args);
 	}
 
-	private Object internalGetFieldByName(Object[] args) {
+	private Object internalGetFieldByName(Object[] args)
+	{
 		String name = null;
 		int type = EncrypteddatabaseModule.FIELD_TYPE_UNKNOWN;
 		if (args.length >= 1) {
@@ -173,7 +183,7 @@ public class TiResultSetProxy extends KrollProxy {
 				name = (String) args[0];
 			} else {
 				throw new IllegalArgumentException("Expected string column name as first parameter"
-						+ args[0].getClass().getSimpleName());
+												   + args[0].getClass().getSimpleName());
 			}
 		}
 		if (args.length == 2) {
@@ -181,14 +191,15 @@ public class TiResultSetProxy extends KrollProxy {
 				type = TiConvert.toInt(args[1]);
 			} else {
 				throw new IllegalArgumentException("Expected int field type as second parameter"
-						+ args[1].getClass().getSimpleName());
+												   + args[1].getClass().getSimpleName());
 			}
 		}
 
 		return internalGetFieldByName(name, type);
 	}
 
-	private Object internalGetFieldByName(String fieldName, int type) {
+	private Object internalGetFieldByName(String fieldName, int type)
+	{
 		Object result = null;
 		if (rs != null) {
 			try {
@@ -205,9 +216,12 @@ public class TiResultSetProxy extends KrollProxy {
 		return result;
 	}
 
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
-	public int getFieldCount() {
+	public int getFieldCount()
+	// clang-format on
+	{
 		if (rs != null) {
 			try {
 				return rs.getColumnCount();
@@ -218,16 +232,17 @@ public class TiResultSetProxy extends KrollProxy {
 		}
 
 		return 0;
-
 	}
 
 	@Kroll.method
-	public String fieldName(int index) {
+	public String fieldName(int index)
+	{
 		return getFieldName(index);
 	}
 
 	@Kroll.method
-	public String getFieldName(int index) {
+	public String getFieldName(int index)
+	{
 		if (rs != null) {
 			try {
 				return rs.getColumnName(index);
@@ -239,9 +254,12 @@ public class TiResultSetProxy extends KrollProxy {
 		return null;
 	}
 
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
-	public int getRowCount() {
+	public int getRowCount()
+	// clang-format on
+	{
 		if (rs != null) {
 			return rs.getCount();
 		}
@@ -250,7 +268,8 @@ public class TiResultSetProxy extends KrollProxy {
 	}
 
 	@Kroll.method
-	public boolean isValidRow() {
+	public boolean isValidRow()
+	{
 		boolean valid = false;
 		if (rs != null && !rs.isClosed() && !rs.isAfterLast()) {
 			valid = true;
@@ -259,7 +278,8 @@ public class TiResultSetProxy extends KrollProxy {
 	}
 
 	@Kroll.method
-	public boolean next() {
+	public boolean next()
+	{
 		if (isValidRow()) {
 			return rs.moveToNext();
 		} else {

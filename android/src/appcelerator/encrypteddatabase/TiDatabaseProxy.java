@@ -21,14 +21,16 @@ import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
 
 @Kroll.proxy(parentModule = EncrypteddatabaseModule.class)
-public class TiDatabaseProxy extends KrollProxy {
+public class TiDatabaseProxy extends KrollProxy
+{
 	private static final String TAG = "TiDB";
 
 	protected SQLiteDatabase db;
 	protected String name;
 	boolean statementLogging, readOnly;
 
-	public TiDatabaseProxy(String name, SQLiteDatabase db) {
+	public TiDatabaseProxy(String name, SQLiteDatabase db)
+	{
 		// super(tiContext);
 		super();
 		this.name = name;
@@ -38,7 +40,8 @@ public class TiDatabaseProxy extends KrollProxy {
 	}
 
 	// readonly database
-	public TiDatabaseProxy(SQLiteDatabase db) {
+	public TiDatabaseProxy(SQLiteDatabase db)
+	{
 		// super(tiContext);
 		super();
 		this.name = db.getPath();
@@ -48,7 +51,8 @@ public class TiDatabaseProxy extends KrollProxy {
 	}
 
 	@Kroll.method
-	public void close() {
+	public void close()
+	{
 		if (db.isOpen()) {
 			Log.d(TAG, "Closing database: " + name, Log.DEBUG_MODE);
 			db.close();
@@ -58,7 +62,8 @@ public class TiDatabaseProxy extends KrollProxy {
 	}
 
 	@Kroll.method
-	public TiResultSetProxy execute(String sql, Object... args) {
+	public TiResultSetProxy execute(String sql, Object... args)
+	{
 		// Handle the cases where an array is passed containing the SQL query
 		// arguments.
 		// Otherwise use the variable argument list for the SQL query.
@@ -154,32 +159,45 @@ public class TiDatabaseProxy extends KrollProxy {
 		return rs;
 	}
 
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
-	public String getName() {
+	public String getName()
+	// clang-format on
+	{
 		return name;
 	}
 
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
-	public TiFileProxy getFile() {
+	public TiFileProxy getFile()
+	// clang-format on
+	{
 		return new TiFileProxy(TiFileFactory.createTitaniumFile(db.getPath(), false));
 	}
 
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
-	public int getLastInsertRowId() {
+	public int getLastInsertRowId()
+	// clang-format on
+	{
 		return (int) DatabaseUtils.longForQuery(db, "select last_insert_rowid()", null);
 	}
 
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
-	public int getRowsAffected() {
+	public int getRowsAffected()
+	// clang-format on
+	{
 		return (int) DatabaseUtils.longForQuery(db, "select changes()", null);
 	}
 
 	@Kroll.method
-	public void remove() {
+	public void remove()
+	{
 		if (readOnly) {
 			Log.w(TAG, name + " is a read-only database, cannot remove");
 			return;
@@ -196,5 +214,4 @@ public class TiDatabaseProxy extends KrollProxy {
 			Log.w(TAG, "Unable to remove database, context has been reclaimed by GC: " + name);
 		}
 	}
-
 }
