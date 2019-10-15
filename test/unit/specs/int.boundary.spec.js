@@ -4,6 +4,7 @@ describe('appcelerator.encrypteddatabase', function () {
 
 	it('can be required', () => {
 		db = require('appcelerator.encrypteddatabase');
+
 		expect(db).toBeDefined();
 		// Must use a static password, karma re-generates new project each time
 		// and default is to use app guid, which will change each time.
@@ -40,6 +41,7 @@ describe('appcelerator.encrypteddatabase', function () {
 			dbConnection.execute('INSERT INTO intTable (id, intValue) VALUES (?, ?);', index, rows[index]);
 		}
 		const resultSet = dbConnection.execute('SELECT id, intValue FROM intTable ORDER BY id');
+
 		expect(resultSet.rowCount).toEqual(rows.length);
 		for (let index = 0; resultSet.isValidRow(); resultSet.next(), index++) {
 			expect(parseInt(resultSet.field(1))).toEqual(rows[index]);
