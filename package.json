@@ -43,6 +43,14 @@
     }
   },
   "lint-staged": {
+    "ios/**/*.{m,h}": [
+      "npx clang-format -style=file -i",
+      "git add"
+    ],
+    "*.java": [
+      "npx clang-format -style=file -i",
+      "git add"
+    ],
     "*.js": "eslint"
   },
   "commitlint": {
