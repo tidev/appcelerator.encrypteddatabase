@@ -30,7 +30,8 @@ import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteDatabaseHook;
 
 @Kroll.module(name = "Encrypteddatabase", id = "appcelerator.encrypteddatabase")
-public class EncrypteddatabaseModule extends KrollModule {
+public class EncrypteddatabaseModule extends KrollModule
+{
 	private static final String TAG = "TiDatabase";
 	private String password = null;
 
@@ -45,30 +46,43 @@ public class EncrypteddatabaseModule extends KrollModule {
 	@Kroll.constant
 	public static final int FIELD_TYPE_DOUBLE = 3;
 
-	public EncrypteddatabaseModule() {
+	public EncrypteddatabaseModule()
+	{
 		super();
 		SQLiteDatabase.loadLibs(TiApplication.getAppCurrentActivity());
 	}
 
-	@Kroll.getProperty @Kroll.method
-	public String getPassword() {
+	// clang-format off
+	@Kroll.getProperty
+	@Kroll.method
+	public String getPassword()
+	// clang-format on
+	{
 		return password == null ? TiApplication.getInstance().getAppGUID() : password;
 	}
 
-	@Kroll.setProperty @Kroll.method
-	public void setPassword(String value) {
+	// clang-format off
+	@Kroll.getProperty
+	@Kroll.method
+	public void setPassword(String value)
+	// clang-format on
+	{
 		password = value;
 	}
 
 	@Kroll.method
-	public TiDatabaseProxy open(Object file) {
+	public TiDatabaseProxy open(Object file)
+	{
 		// Attempt to create/open the given database file/name.
 		TiDatabaseProxy dbp = null;
 
 		// Migrate database if necessary.
 		final SQLiteDatabaseHook migrationHook = new SQLiteDatabaseHook() {
-			public void preKey(SQLiteDatabase database) {}
-			public void postKey(SQLiteDatabase database) {
+			public void preKey(SQLiteDatabase database)
+			{
+			}
+			public void postKey(SQLiteDatabase database)
+			{
 				database.rawExecSQL("PRAGMA cipher_migrate;");
 			}
 		};
@@ -81,8 +95,9 @@ public class EncrypteddatabaseModule extends KrollModule {
 			String absolutePath = tiFile.getBaseFile().getNativeFile().getAbsolutePath();
 			Log.d(TAG, "Opening database from filesystem: " + absolutePath);
 
-			SQLiteDatabase db = SQLiteDatabase.openDatabase(absolutePath, getPassword(), null,
-					SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS, migrationHook);
+			SQLiteDatabase db = SQLiteDatabase.openDatabase(
+				absolutePath, getPassword(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS,
+				migrationHook);
 			if (db != null) {
 				dbp = new TiDatabaseProxy(db);
 			} else {
@@ -110,7 +125,8 @@ public class EncrypteddatabaseModule extends KrollModule {
 	}
 
 	@Kroll.method
-	public TiDatabaseProxy install(KrollInvocation invocation, String url, String name) throws IOException {
+	public TiDatabaseProxy install(KrollInvocation invocation, String url, String name) throws IOException
+	{
 		try {
 			// TiContext tiContext = invocation.getTiContext();
 			Context ctx = TiApplication.getInstance();
