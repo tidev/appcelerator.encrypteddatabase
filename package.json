@@ -35,6 +35,15 @@
     "lint-staged": "^9.4.2",
     "socket.io": "^2.2.0"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint"
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
