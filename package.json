@@ -1,5 +1,5 @@
 {
-  "name": "appcelerator.encrypteddatabase",
+  "name": "@titanium-sdk/appcelerator.encrypteddatabase",
   "version": "3.0.3",
   "description": "Provides transparent, secure 256-bit AES encryption of SQLite database files.",
   "private": true,
