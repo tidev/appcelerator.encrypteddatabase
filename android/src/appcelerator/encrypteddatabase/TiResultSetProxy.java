@@ -14,7 +14,7 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.database.Cursor;
-import net.sqlcipher.AbstractWindowedCursor;
+import net.sqlcipher.CrossProcessCursorWrapper;
 import net.sqlcipher.SQLException;
 import android.os.Build;
 
@@ -95,19 +95,30 @@ public class TiResultSetProxy extends KrollProxy {
 		boolean fromString = false;
 
 		try {
-			if (rs instanceof AbstractWindowedCursor) {
-				AbstractWindowedCursor cursor = (AbstractWindowedCursor) rs;
+			if (rs instanceof CrossProcessCursorWrapper) {
+				final CrossProcessCursorWrapper cursor = (CrossProcessCursorWrapper) rs;
+				final int cursorType = cursor.getType(index);
 
-				if (cursor.isFloat(index)) {
-					result = cursor.getDouble(index);
-				} else if (cursor.isLong(index)) {
-					result = cursor.getLong(index);
-				} else if (cursor.isNull(index)) {
-					result = null;
-				} else if (cursor.isBlob(index)) {
-					result = TiBlob.blobFromData(cursor.getBlob(index));
-				} else {
-					fromString = true;
+				switch (cursorType) {
+					case Cursor.FIELD_TYPE_NULL:
+						result = null;
+						break;
+					case Cursor.FIELD_TYPE_INTEGER:
+						// No long field type, longs are set as integer type.
+						// Using getLong() to preserve accuracy in these cases.
+						result = cursor.getLong(index);
+						break;
+					case Cursor.FIELD_TYPE_FLOAT:
+						// No double field type, doubles are set as float type.
+						// Using getDouble() to preserve accuracy in these cases.
+						result = cursor.getDouble(index);
+						break;
+					case Cursor.FIELD_TYPE_BLOB:
+						result = TiBlob.blobFromData(cursor.getBlob(index));
+						break;
+					case Cursor.FIELD_TYPE_STRING:
+					default:
+						fromString = true;
 				}
 			} else {
 				fromString = true;
