@@ -59,12 +59,10 @@
   },
   "lint-staged": {
     "ios/Classes/*.{m,h}": [
-      "npx clang-format -style=file -i",
-      "git add"
+      "npx clang-format -style=file -i"
     ],
     "*.java": [
-      "npx clang-format -style=file -i",
-      "git add"
+      "npx clang-format -style=file -i"
     ],
     "*.js": "eslint"
   },
