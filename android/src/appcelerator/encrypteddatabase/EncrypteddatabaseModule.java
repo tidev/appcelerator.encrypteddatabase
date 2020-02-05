@@ -62,7 +62,7 @@ public class EncrypteddatabaseModule extends KrollModule
 	}
 
 	// clang-format off
-	@Kroll.getProperty
+	@Kroll.setProperty
 	@Kroll.method
 	public void setPassword(String value)
 	// clang-format on
