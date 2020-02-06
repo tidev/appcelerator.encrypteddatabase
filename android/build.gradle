@@ -1,0 +1,3 @@
+dependencies {
+    implementation "androidx.sqlite:sqlite:2.1.0"
+}

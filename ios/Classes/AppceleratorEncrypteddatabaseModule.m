@@ -3,7 +3,7 @@
  * Copyright (c) 2010-2013 by Appcelerator, Inc. All Rights Reserved.
  * Proprietary and Confidential - This source code is not for redistribution
  */
- 
+
 #import "AppceleratorEncrypteddatabaseModule.h"
 #import "TiBase.h"
 #import "TiHost.h"
@@ -14,68 +14,69 @@
 #pragma mark Internal
 
 // this is generated for your module, please do not change it
--(id)moduleGUID
+- (id)moduleGUID
 {
-	return @"d1b3740c-ec53-45c6-8454-8748f91da6ad";
+  return @"d1b3740c-ec53-45c6-8454-8748f91da6ad";
 }
 
 // this is generated for your module, please do not change it
--(NSString*)moduleId
+- (NSString *)moduleId
 {
-	return @"appcelerator.encrypteddatabase";
+  return @"appcelerator.encrypteddatabase";
 }
 
--(void)startup
+- (void)startup
 {
-	// enable multi-threading
-	sqlite3_enable_shared_cache(TRUE);
+  // enable multi-threading
+  sqlite3_enable_shared_cache(TRUE);
 }
 
 @synthesize password;
 
--(id)open:(id)path
+- (id)open:(id)path
 {
-	ENSURE_SINGLE_ARG(path,NSString);
-	AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
-    db.password = password;
-	[db open:path];
-	return db;
+  ENSURE_SINGLE_ARG(path, NSString);
+  AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
+  db.password = password;
+  [db open:path];
+  return db;
 }
 
--(id)cipherUpgrade:(id)path
+- (id)cipherUpgrade:(id)path
 {
-	ENSURE_SINGLE_ARG(path,NSString);
-	AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
-	db.password = password;
-	return [db cipherUpgrade:path];
+  ENSURE_SINGLE_ARG(path, NSString);
+  AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
+  db.password = password;
+  return [db cipherUpgrade:path];
 }
 
--(NSNumber*)isCipherUpgradeRequired:(id)args
+- (NSNumber *)isCipherUpgradeRequired:(id)args
 {
-	ENSURE_SINGLE_ARG(args, NSString)
-	AppceleratorEncrypteddatabaseDBProxy *db = [[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil];
-	NSNumber *result = [db isCipherUpgradeRequired:args];
-	RELEASE_TO_NIL(db)
-	return result;
+  ENSURE_SINGLE_ARG(args, NSString)
+  AppceleratorEncrypteddatabaseDBProxy *db = [[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil];
+  NSNumber *result = [db isCipherUpgradeRequired:args];
+  RELEASE_TO_NIL(db)
+  return result;
 }
--(id)install:(id)args
+- (id)install:(id)args
 {
-	ENSURE_ARG_COUNT(args,2);
-	AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
-    db.password = password;
-	[db install:[args objectAtIndex:0] name:[args objectAtIndex:1]];
-	return db;
+  ENSURE_ARG_COUNT(args, 2);
+  AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
+  db.password = password;
+  [db install:[args objectAtIndex:0] name:[args objectAtIndex:1]];
+  return db;
 }
 
--(void)shutdown:(id)sender
+- (void)shutdown:(id)sender
 {
-    password = nil;
+  password = nil;
 }
 
 #define DB_CONSTANT(name, num) \
--(id)name {\
-return NUMINT(num);\
-}
+  -(id)name                    \
+  {                            \
+    return NUMINT(num);        \
+  }
 
 DB_CONSTANT(FIELD_TYPE_UNKNOWN, TiFieldTypeUnknown)
 DB_CONSTANT(FIELD_TYPE_STRING, TiFieldTypeString)

@@ -8,13 +8,13 @@
 #define Enc_ThirdpartyNS_h
 
 #ifndef __ENC_NAMESPACE_PREFIX_
-#define __ENC_NAMESPACE_PREFIX_	ENC
+#define __ENC_NAMESPACE_PREFIX_ ENC
 #endif
 
 #ifndef __ENC_NS_SYMBOL
 // Must have multiple levels of macros so that __ENC_NAMESPACE_PREFIX_ is
 // properly replaced by the time the namespace prefix is concatenated.
-#define __ENC_NS_REWRITE(ns, symbol) ns ## _ ## symbol
+#define __ENC_NS_REWRITE(ns, symbol) ns##_##symbol
 #define __ENC_NS_BRIDGE(ns, symbol) __ENC_NS_REWRITE(ns, symbol)
 #define __ENC_NS_SYMBOL(symbol) __ENC_NS_BRIDGE(__ENC_NAMESPACE_PREFIX_, symbol)
 #endif
