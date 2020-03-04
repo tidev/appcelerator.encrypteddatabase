@@ -23,8 +23,6 @@
 
 /* Begin PBXBuildFile section */
 		1941A19221FA710000D76AE5 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1941A19121FA710000D76AE5 /* Security.framework */; };
-		1986101122050F680098E33D /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 1986100F22050F680098E33D /* sqlite3.c */; };
-		1986101222050F680098E33D /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 1986101022050F680098E33D /* sqlite3.h */; };
 		24DD6CF91134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DD6CF71134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h */; };
 		24DD6CFA1134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DD6CF81134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m */; };
 		24DE9E1111C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.h */; };
@@ -61,8 +59,6 @@
 
 /* Begin PBXFileReference section */
 		1941A19121FA710000D76AE5 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		1986100F22050F680098E33D /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
-		1986101022050F680098E33D /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
 		24DD6CF71134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppceleratorEncrypteddatabaseModule.h; path = Classes/AppceleratorEncrypteddatabaseModule.h; sourceTree = "<group>"; };
 		24DD6CF81134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppceleratorEncrypteddatabaseModule.m; path = Classes/AppceleratorEncrypteddatabaseModule.m; sourceTree = "<group>"; };
 		24DD6D1B1134B66800162E58 /* titanium.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = titanium.xcconfig; sourceTree = "<group>"; };
@@ -135,8 +131,6 @@
 			children = (
 				A0CCE858175EA0BE005D04CF /* PlausibleDatabase */,
 				A06D6E9D175EA4330051B537 /* ThirdpartyNS.h */,
-				1986100F22050F680098E33D /* sqlite3.c */,
-				1986101022050F680098E33D /* sqlite3.h */,
 				A0CCE864175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h */,
 				A0CCE865175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.m */,
 				A0CCE866175EA0BE005D04CF /* AppceleratorEncrypteddatabaseResultSetProxy.h */,
@@ -192,7 +186,6 @@
 				A0CCE86D175EA0BE005D04CF /* EncPLPreparedStatement.h in Headers */,
 				A0CCE86E175EA0BE005D04CF /* EncPLResultSet.h in Headers */,
 				A0CCE86F175EA0BE005D04CF /* EncPLSqliteDatabase.h in Headers */,
-				1986101222050F680098E33D /* sqlite3.h in Headers */,
 				A0CCE871175EA0BE005D04CF /* EncPLSqlitePreparedStatement.h in Headers */,
 				A0CCE873175EA0BE005D04CF /* EncPLSqliteResultSet.h in Headers */,
 				A0CCE875175EA0BE005D04CF /* AppceleratorEncrypteddatabaseDBProxy.h in Headers */,
@@ -272,7 +265,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				24DD6CFA1134B3F500162E58 /* AppceleratorEncrypteddatabaseModule.m in Sources */,
-				1986101122050F680098E33D /* sqlite3.c in Sources */,
 				24DE9E1211C5FE74003F90F6 /* AppceleratorEncrypteddatabaseModuleAssets.m in Sources */,
 				A0CCE86B175EA0BE005D04CF /* EncPlausibleDatabase.m in Sources */,
 				A0CCE870175EA0BE005D04CF /* EncPLSqliteDatabase.m in Sources */,
@@ -341,6 +333,7 @@
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = iphoneos;
+				TITANIUM_SDK_VERSION = 8.3.1.GA;
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -389,6 +382,7 @@
 				PRODUCT_NAME = AppceleratorEncrypteddatabase;
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = iphoneos;
+				TITANIUM_SDK_VERSION = 8.3.1.GA;
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
