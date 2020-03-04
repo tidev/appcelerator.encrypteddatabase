@@ -27,8 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <sqlite3.h>
 #import "AppModule.h"
+
+#include "sqlite3.h"
 #include "ThirdpartyNS.h"
 
 extern NSString *EncPLSqliteException;
