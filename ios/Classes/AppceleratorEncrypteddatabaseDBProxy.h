@@ -6,7 +6,8 @@
 
 #import "EncPlausibleDatabase.h"
 #import "TiProxy.h"
-#import <sqlite3.h>
+
+#include "sqlite3.h"
 
 @interface AppceleratorEncrypteddatabaseDBProxy : TiProxy {
   @protected

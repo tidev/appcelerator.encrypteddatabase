@@ -96,7 +96,7 @@ BOOL isNewDatabase = NO;
   NSFileManager *fm = [NSFileManager defaultManager];
   NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
   BOOL versionExists = [fm fileExistsAtPath:versionFile];
-  NSString *currentVersion = @"2.0.7";
+  NSString *currentVersion = @"2.0.8";
   BOOL migrate = YES;
 
   if (versionExists) {
