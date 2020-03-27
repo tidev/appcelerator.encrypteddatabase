@@ -24,6 +24,7 @@ import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.util.TiUrl;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
@@ -33,6 +34,7 @@ import net.sqlcipher.database.SQLiteDatabaseHook;
 public class EncrypteddatabaseModule extends KrollModule
 {
 	private static final String TAG = "TiDatabase";
+	private static final String MODULE_PREFERENCES_NAME = "appcelerator.encrypteddatabase";
 	private String password = null;
 
 	@Kroll.constant
@@ -75,18 +77,6 @@ public class EncrypteddatabaseModule extends KrollModule
 	{
 		// Attempt to create/open the given database file/name.
 		TiDatabaseProxy dbp = null;
-
-		// Migrate database if necessary.
-		final SQLiteDatabaseHook migrationHook = new SQLiteDatabaseHook() {
-			public void preKey(SQLiteDatabase database)
-			{
-			}
-			public void postKey(SQLiteDatabase database)
-			{
-				database.rawExecSQL("PRAGMA cipher_migrate;");
-			}
-		};
-
 		if (file instanceof TiFileProxy) {
 			// File support is read-only for now. The NO_LOCALIZED_COLLATORS
 			// flag means the database doesn't have Android metadata (i.e.
@@ -97,7 +87,7 @@ public class EncrypteddatabaseModule extends KrollModule
 
 			SQLiteDatabase db = SQLiteDatabase.openDatabase(
 				absolutePath, getPassword(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS,
-				migrationHook);
+				new MigrationHook());
 			if (db != null) {
 				dbp = new TiDatabaseProxy(db);
 			} else {
@@ -107,7 +97,7 @@ public class EncrypteddatabaseModule extends KrollModule
 			String name = (String) file;
 			File dbPath = TiApplication.getInstance().getDatabasePath(name);
 			dbPath.getParentFile().mkdirs();
-			SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null, migrationHook);
+			SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(dbPath, getPassword(), null, new MigrationHook());
 			if (db != null) {
 				dbp = new TiDatabaseProxy(name, db);
 			} else {
@@ -184,4 +174,115 @@ public class EncrypteddatabaseModule extends KrollModule
 			throw e;
 		}
 	}
+
+	private static class MigrationHook implements SQLiteDatabaseHook {
+		/**
+		 * Called immediately before opening the database.
+		 * @param database The database being opened.
+		 */
+		@Override
+		public void preKey(SQLiteDatabase database)
+		{
+		}
+
+		/**
+		 * Called immediately after opening the database.
+		 * @param database The database that was opened.
+		 */
+		@Override
+		public void postKey(SQLiteDatabase database)
+		{
+			// Fetch the database's file path.
+			String dbFilePath = database.getPath();
+			if (dbFilePath == null) {
+				dbFilePath = "";
+			}
+
+			// Fetch the library version we last opened the database with.
+			SharedPreferences preferencesReader = null;
+			String lastVersionString = null;
+			try {
+				preferencesReader = TiApplication.getInstance().getSharedPreferences(
+					MODULE_PREFERENCES_NAME, Context.MODE_PRIVATE);
+				lastVersionString = preferencesReader.getString(dbFilePath, null);
+			} catch (Exception ex) {
+				Log.e(TAG, "Failed to read version from shared preferences.", ex);
+			}
+
+			// Determine if we need to migrate the database.
+			boolean isMigrationNeeded = false;
+			if (lastVersionString == null) {
+				// Version string not found in preferences.
+				// This might be the first time we tracked the version or DB file was moved/copied.
+				isMigrationNeeded = true;
+			} else if (compareMajorVersionStrings(lastVersionString, SQLiteDatabase.SQLCIPHER_ANDROID_VERSION) < 0) {
+				// The database file is older than the library we're using.
+				isMigrationNeeded = true;
+			}
+
+			// Migrate the database file if needed.
+			// Note: This is expensive since it involves creating a temporary database file.
+			if (isMigrationNeeded) {
+				database.rawExecSQL("PRAGMA cipher_migrate;");
+			}
+
+			// Store the library version we're using for the next time we open it.
+			if ((preferencesReader != null) && (dbFilePath != null) && !dbFilePath.isEmpty()) {
+				try {
+					SharedPreferences.Editor preferencesWriter = preferencesReader.edit();
+					preferencesWriter.putString(dbFilePath, SQLiteDatabase.SQLCIPHER_ANDROID_VERSION);
+					preferencesWriter.commit();
+				} catch (Exception ex) {
+					Log.e(TAG, "Failed to write version to shared preferences.", ex);
+				}
+			}
+		}
+
+		/**
+		 * Compares the major version components of the 2 given version strings.
+		 * @param versionString1 The version string to be compared with versionString2. Can be null.
+		 * @param versionString2 The version string to be compared with versionString1. Can be null.
+		 * @return
+		 * Returns zero if arguments match.
+		 * Returns a positive number if 1st argument is greater than 2nd argument.
+		 * Returns a negative number if 1st argument is less than 2nd argument.
+		 */
+		private static int compareMajorVersionStrings(String versionString1, String versionString2)
+		{
+			// Compare references first.
+			if (versionString1 == versionString2) {
+				return 0;
+			} else if ((versionString1 != null) && (versionString2 == null)) {
+				return 1;
+			} else if ((versionString1 == null) && (versionString2 != null)) {
+				return -1;
+			}
+
+			// Compare major version components between the 2 version strings.
+			return parseMajorVersionIntFrom(versionString1) - parseMajorVersionIntFrom(versionString2);
+		}
+
+		/**
+		 * Extracts the major version components of the given version string and returns it as an integer.
+		 * @param versionString The version string to be extracted. Can be null.
+		 * @return Returns the extracted major version value or zero if failed to extract.
+		 */
+		private static int parseMajorVersionIntFrom(String versionString)
+		{
+			int value = 0;
+			try {
+				if (versionString != null) {
+					int index = versionString.indexOf('.');
+					if (index >= 0) {
+						versionString = versionString.substring(0, index);
+					}
+					if (!versionString.isEmpty()) {
+						value = Integer.parseInt(versionString);
+					}
+				}
+			} catch (Exception ex) {
+			}
+			return value;
+		}
+	};
 }
