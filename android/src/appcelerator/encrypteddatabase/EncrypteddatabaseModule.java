@@ -175,7 +175,8 @@ public class EncrypteddatabaseModule extends KrollModule
 		}
 	}
 
-	private static class MigrationHook implements SQLiteDatabaseHook {
+	private static class MigrationHook implements SQLiteDatabaseHook
+	{
 		/**
 		 * Called immediately before opening the database.
 		 * @param database The database being opened.
@@ -202,8 +203,8 @@ public class EncrypteddatabaseModule extends KrollModule
 			SharedPreferences preferencesReader = null;
 			String lastVersionString = null;
 			try {
-				preferencesReader = TiApplication.getInstance().getSharedPreferences(
-					MODULE_PREFERENCES_NAME, Context.MODE_PRIVATE);
+				preferencesReader =
+					TiApplication.getInstance().getSharedPreferences(MODULE_PREFERENCES_NAME, Context.MODE_PRIVATE);
 				lastVersionString = preferencesReader.getString(dbFilePath, null);
 			} catch (Exception ex) {
 				Log.e(TAG, "Failed to read version from shared preferences.", ex);
