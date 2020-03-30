@@ -4,7 +4,7 @@
  * Proprietary and Confidential - This source code is not for redistribution
  */
 
-#define SQL_CIPHER_VERSION @"4.0.1"  // Update it if updating sqlcipher
+#define SQL_CIPHER_VERSION @"4.0.1" // Update it if updating sqlcipher
 
 #import "AppceleratorEncrypteddatabaseDBProxy.h"
 #import "AppceleratorEncrypteddatabaseResultSetProxy.h"
@@ -103,7 +103,7 @@ BOOL isNewDatabase = NO;
   oldCipherVersion = [NSNumber numberWithInteger:[[[SQL_CIPHER_VERSION componentsSeparatedByString:@"."] firstObject] integerValue]]; //  major of SQL_CIPHER_VERSION
 
   NSString *currentCipherVersion = _cipherVersion ? [NSString stringWithFormat:@"%@", _cipherVersion] : SQL_CIPHER_VERSION;
-  
+
   if (versionExists) {
     NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
     if ([version isEqualToString:@"2.0.7"]) {
@@ -242,7 +242,7 @@ BOOL isNewDatabase = NO;
   database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
   database.cipherVersion = _cipherVersion;
   database.oldCipherVersion = oldCipherVersion;
-  
+
   if (![database openAndMigrate:nil]) {
     [self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
     RELEASE_TO_NIL(database);

@@ -75,7 +75,7 @@
   password = nil;
 }
 
-- (void) setCipherVersion:(NSNumber *)version
+- (void)setCipherVersion:(NSNumber *)version
 {
   ENSURE_TYPE(version, NSNumber);
   cipherVersion = version;
