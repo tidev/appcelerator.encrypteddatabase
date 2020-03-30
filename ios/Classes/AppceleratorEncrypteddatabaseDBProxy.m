@@ -4,6 +4,8 @@
  * Proprietary and Confidential - This source code is not for redistribution
  */
 
+#define SQL_CIPHER_VERSION @"4.0.1"  // Update it if updating sqlcipher
+
 #import "AppceleratorEncrypteddatabaseDBProxy.h"
 #import "AppceleratorEncrypteddatabaseResultSetProxy.h"
 #import "TiFilesystemFileProxy.h"
@@ -96,17 +98,29 @@ BOOL isNewDatabase = NO;
   NSFileManager *fm = [NSFileManager defaultManager];
   NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
   BOOL versionExists = [fm fileExistsAtPath:versionFile];
-  NSString *currentVersion = @"2.0.7";
   BOOL migrate = YES;
 
+  oldCipherVersion = [NSNumber numberWithInteger:[[[SQL_CIPHER_VERSION componentsSeparatedByString:@"."] firstObject] integerValue]]; //  major of SQL_CIPHER_VERSION
+
+  NSString *currentCipherVersion = _cipherVersion ? [NSString stringWithFormat:@"%@", _cipherVersion] : SQL_CIPHER_VERSION;
+  
   if (versionExists) {
     NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
-    if ([version isEqualToString:currentVersion]) {
+    if ([version isEqualToString:@"2.0.7"]) {
+      // previous module had module version in version file and 2.0.7 has sql cipher version 4.0.1
+      version = SQL_CIPHER_VERSION;
+    }
+    NSString *majorCipherVersion = [[version componentsSeparatedByString:@"."] firstObject];
+    oldCipherVersion = [NSNumber numberWithInteger:[majorCipherVersion integerValue]];
+    NSString *majorCurrentCipherVersion = [[currentCipherVersion componentsSeparatedByString:@"."] firstObject];
+
+    if ([majorCipherVersion isEqualToString:majorCurrentCipherVersion]) {
+      // Do not migrate if major of cipher version is same as of current
       migrate = NO;
     }
   }
   if (migrate) {
-    [fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+    [fm createFileAtPath:versionFile contents:[currentCipherVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
   }
   if (isNewDatabase) {
     migrate = NO;
@@ -192,6 +206,7 @@ BOOL isNewDatabase = NO;
   }
   NSString *tempPath = [self generateTempPath];
   database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+  database.cipherVersion = _cipherVersion;
   if (![database openAndMigrate:nil]) {
     [self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
     RELEASE_TO_NIL(database);
@@ -214,6 +229,8 @@ BOOL isNewDatabase = NO;
   NSString *path = [self dbPath:name];
   if (![self needCipherMigrate:name]) {
     database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+    database.cipherVersion = _cipherVersion;
+
     if (![database open]) {
       [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
       RELEASE_TO_NIL(database);
@@ -223,6 +240,9 @@ BOOL isNewDatabase = NO;
   //we need to migrate here
   NSString *tempPath = [self generateTempPath];
   database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+  database.cipherVersion = _cipherVersion;
+  database.oldCipherVersion = oldCipherVersion;
+  
   if (![database openAndMigrate:nil]) {
     [self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
     RELEASE_TO_NIL(database);
@@ -235,6 +255,8 @@ BOOL isNewDatabase = NO;
   [self replaceOldCopy:path withNewCopy:tempPath];
   //now open the new database
   database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+  database.cipherVersion = _cipherVersion;
+
   if (![database open]) {
     [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
     RELEASE_TO_NIL(database);

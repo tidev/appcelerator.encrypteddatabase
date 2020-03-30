@@ -111,7 +111,8 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     /* Release our backing path */
     [_path release];
     [_password release];
-
+    [_cipherVersion release];
+    [_oldCipherVersion release];
     [super dealloc];
 }
 
@@ -139,11 +140,12 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
  */
 - (BOOL) openAndReturnError: (NSError **) error {
     int err;
+    char *errMsg;
 
     /* Do not call open twice! */
     if (_sqlite != nil)
         [NSException raise: ENC_EncPLSqliteException format: @"Attempted to open already-open SQLite database instance at '%@'. Called -[EncPLSqliteDatabase open] twice?", _path];
-    
+
     /* Open the database */
     err = sqlite3_open([_path fileSystemRepresentation], &_sqlite);
     if (err != SQLITE_OK) {
@@ -154,6 +156,19 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     
+    if (_cipherVersion && _cipherVersion != _oldCipherVersion) {
+      NSString *query = [NSString stringWithFormat:@"PRAGMA cipher_default_compatibility = %@;", _cipherVersion];
+        err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+        if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher compatibility: failed to set cipher compatibility.", @"")
+                  queryString: nil];
+          return NO;
+        }
+    }
+  
     /* Set a password */
     const char* key;
     if (_password == nil || [_password isEqualToString:@"DEFAULT"]) {
@@ -178,14 +193,30 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
-    
+  
     /* Success */
     return YES;
 }
 
 - (BOOL) openAndMigrate: (NSError **) error {
     int err;
-    
+    char *errMsg;
+
+    // cipher migration parameter of sqlcipher 3 (default sqlcipher)
+    // https://discuss.zetetic.net/t/upgrading-to-sqlcipher-4/3283
+  
+    NSInteger pageSize = 1024;
+    NSInteger kdfItr = 64000;
+    NSString *hmac = @"HMAC_SHA1";
+    NSString *kdfAlgorithm = @"PBKDF2_HMAC_SHA1";
+    if ([_oldCipherVersion integerValue] == 4) {
+      // cipher migration parameter of sqlcipher 4
+      pageSize = 4096;
+      kdfItr = 256000;
+      hmac = @"HMAC_SHA512";
+      kdfAlgorithm = @"PBKDF2_HMAC_SHA512";
+    }
+
     /* Do not call open twice! */
     if (_sqlite != nil)
         [NSException raise: ENC_EncPLSqliteException format: @"Attempted to open already-open SQLite database instance at '%@'. Called -[EncPLSqliteDatabase open] twice?", _path];
@@ -204,6 +235,19 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     
+  if (_cipherVersion) {
+    NSString *query = [NSString stringWithFormat:@"PRAGMA cipher_default_compatibility = %@", _cipherVersion];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+        [self populateError: error
+              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                description: NSLocalizedString(@"Cipher compatibility: failed to set cipher compatibility.", @"")
+                queryString: nil];
+        return NO;
+      }
+  }
+
     /* Set a password */
     const char* key;
     if (_password == nil || [_password isEqualToString:@"DEFAULT"]) {
@@ -228,10 +272,10 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
-    char *errMsg;
 
     //prepare existing database for migration
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_page_size = 1024;" UTF8String], NULL, NULL, &errMsg);
+  NSString *query = [NSString stringWithFormat:@"PRAGMA cipher_page_size = %ld", pageSize];
+    err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
         [self populateError: error
@@ -240,7 +284,9 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
-    err = sqlite3_exec(_sqlite, [@"PRAGMA kdf_iter = 64000;" UTF8String], NULL, NULL, &errMsg);
+  
+    query = [NSString stringWithFormat:@"PRAGMA kdf_iter = %ld", kdfItr];
+    err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
         [self populateError: error
@@ -249,7 +295,9 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_hmac_algorithm = HMAC_SHA1;" UTF8String], NULL, NULL, &errMsg);
+  
+    query = [NSString stringWithFormat:@"PRAGMA cipher_hmac_algorithm = %@", hmac];
+    err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
         [self populateError: error
@@ -258,7 +306,9 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA1;" UTF8String], NULL, NULL, &errMsg);
+  
+    query = [NSString stringWithFormat:@"PRAGMA cipher_kdf_algorithm = %@", kdfAlgorithm];
+    err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
         NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
         [self populateError: error

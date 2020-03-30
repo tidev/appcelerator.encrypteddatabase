@@ -13,12 +13,14 @@
   NSString *name;
   EncPLSqliteDatabase *database;
   NSMutableArray *statements;
+  NSNumber *oldCipherVersion;
 }
 
 @property (nonatomic, readonly) NSString *name;
 @property (nonatomic, readonly) NSNumber *rowsAffected;
 @property (nonatomic, readonly) NSNumber *lastInsertRowId;
 @property (nonatomic, readwrite, retain) NSString *password;
+@property (nonatomic, retain) NSNumber *cipherVersion;
 
 - (NSDictionary *)cipherUpgrade:(NSString *)name_;
 - (NSNumber *)isCipherUpgradeRequired:(id)args;
