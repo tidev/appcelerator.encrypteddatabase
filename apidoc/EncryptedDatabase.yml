@@ -74,7 +74,6 @@ properties:
     type: String
     since: "1.0.0"
 
-properties:
   - name: cipherVersion
     summary: The sql cipher version, whose algorithms should be used for encrypting data.
     type: Number
@@ -83,7 +82,6 @@ properties:
     default: Modules.EncryptedDatabase.CIPHER_VERSION_FOUR
     since: "2.1.0"
 
-properties:
   - name: CIPHER_VERSION_THREE
     summary: Sqlite cipher version 3. Used with <Modules.EncryptedDatabase.cipherVersion>.
     type: Number
@@ -91,7 +89,6 @@ properties:
     permission: read-only
     since: "2.1.0"
 
-properties:
   - name: CIPHER_VERSION_FOUR
     summary: Sqlite cipher version 4. Used with <Modules.EncryptedDatabase.cipherVersion>.
     type: Number
