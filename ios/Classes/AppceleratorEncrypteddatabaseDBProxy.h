@@ -13,6 +13,8 @@
   NSString *name;
   EncPLSqliteDatabase *database;
   NSMutableArray *statements;
+  NSDictionary *oldCipherParams;
+  NSDictionary *currentCipherParams;
 }
 
 @property (nonatomic, readonly) NSString *name;
@@ -32,5 +34,5 @@
 
 - (void)removeStatement:(EncPLSqliteResultSet *)statement;
 - (EncPLSqliteDatabase *)database;
-
+- (void)setKdfIterations:(NSNumber *)iteration andHmacAlgorithm:(NSNumber *)algorithm;
 @end

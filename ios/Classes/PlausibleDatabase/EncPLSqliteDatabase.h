@@ -45,6 +45,9 @@ extern NSString *EncPLSqliteException;
     sqlite3 *_sqlite;
 }
 
+@property (nonatomic, retain) NSDictionary *currentCipherParams;
+@property (nonatomic, retain) NSDictionary *oldCipherParams;
+
 + (id) databaseWithPath: (NSString *) dbPath;
 
 - (id) initWithPath: (NSString*) dbPath andPassword: (NSString*) password;

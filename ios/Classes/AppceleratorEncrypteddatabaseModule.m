@@ -38,6 +38,8 @@
   ENSURE_SINGLE_ARG(path, NSString);
   AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
   db.password = password;
+  [db setKdfIterations:kdfIterations andHmacAlgorithm:hmacAlgorithm];
+
   [db open:path];
   return db;
 }
@@ -47,6 +49,8 @@
   ENSURE_SINGLE_ARG(path, NSString);
   AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
   db.password = password;
+  [db setKdfIterations:kdfIterations andHmacAlgorithm:hmacAlgorithm];
+
   return [db cipherUpgrade:path];
 }
 
@@ -63,6 +67,7 @@
   ENSURE_ARG_COUNT(args, 2);
   AppceleratorEncrypteddatabaseDBProxy *db = [[[AppceleratorEncrypteddatabaseDBProxy alloc] _initWithPageContext:[self executionContext] args:nil] autorelease];
   db.password = password;
+  [db setKdfIterations:kdfIterations andHmacAlgorithm:hmacAlgorithm];
   [db install:[args objectAtIndex:0] name:[args objectAtIndex:1]];
   return db;
 }
@@ -72,16 +77,26 @@
   password = nil;
 }
 
-#define DB_CONSTANT(name, num) \
-  -(id)name                    \
-  {                            \
-    return NUMINT(num);        \
-  }
+- (void)setHmacKdfIterations:(NSNumber *)iterations
+{
+  ENSURE_TYPE(iterations, NSNumber);
+  kdfIterations = iterations;
+}
 
-DB_CONSTANT(FIELD_TYPE_UNKNOWN, TiFieldTypeUnknown)
-DB_CONSTANT(FIELD_TYPE_STRING, TiFieldTypeString)
-DB_CONSTANT(FIELD_TYPE_INT, TiFieldTypeInt)
-DB_CONSTANT(FIELD_TYPE_FLOAT, TiFieldTypeFloat)
-DB_CONSTANT(FIELD_TYPE_DOUBLE, TiFieldTypeDouble);
+- (void)setHmacAlgorithm:(NSNumber *)algorithm
+{
+  ENSURE_TYPE(algorithm, NSNumber);
+  hmacAlgorithm = algorithm;
+}
+
+MAKE_SYSTEM_PROP(FIELD_TYPE_UNKNOWN, TiFieldTypeUnknown);
+MAKE_SYSTEM_PROP(FIELD_TYPE_STRING, TiFieldTypeString);
+MAKE_SYSTEM_PROP(FIELD_TYPE_INT, TiFieldTypeInt);
+MAKE_SYSTEM_PROP(FIELD_TYPE_FLOAT, TiFieldTypeFloat);
+MAKE_SYSTEM_PROP(FIELD_TYPE_DOUBLE, TiFieldTypeDouble);
+
+MAKE_SYSTEM_PROP(HMAC_SHA1, 1);
+MAKE_SYSTEM_PROP(HMAC_SHA256, 2);
+MAKE_SYSTEM_PROP(HMAC_SHA512, 3);
 
 @end
