@@ -29,6 +29,8 @@
 {
   // enable multi-threading
   sqlite3_enable_shared_cache(TRUE);
+  kdfIterations = @256000;
+  hmacAlgorithm = @3;
 }
 
 @synthesize password;
@@ -80,13 +82,28 @@
 - (void)setHmacKdfIterations:(NSNumber *)iterations
 {
   ENSURE_TYPE(iterations, NSNumber);
+  if ([iterations integerValue] > 256000) {
+    iterations = @256000;
+  } else if ([iterations integerValue] < 4000) {
+    iterations = @4000;
+  }
   kdfIterations = iterations;
+}
+
+- (NSNumber *)hmacKdfIterations
+{
+  return kdfIterations;
 }
 
 - (void)setHmacAlgorithm:(NSNumber *)algorithm
 {
   ENSURE_TYPE(algorithm, NSNumber);
   hmacAlgorithm = algorithm;
+}
+
+- (NSNumber *)hmacAlgorithm
+{
+  return hmacAlgorithm;
 }
 
 MAKE_SYSTEM_PROP(FIELD_TYPE_UNKNOWN, TiFieldTypeUnknown);
