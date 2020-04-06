@@ -231,7 +231,7 @@ public class EncrypteddatabaseModule extends KrollModule
 		String dbPassword = getPassword();
 
 		// Load existing database's encryption settings from properties file if it exists.
-		// Note: This module started creating this file as of v4.0.1.
+		// Note: This module started creating this file as of v4.1.0.
 		TiDatabaseSettings dbOldSettings = null;
 		File propertiesFile = new File(dbFile.getAbsolutePath() + ".appc.properties");
 		try {
