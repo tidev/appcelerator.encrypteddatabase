@@ -5,10 +5,10 @@
  */
 
 // Add  parameter dictionary of major  release of cipher parameters
-#define CIPHER_ARRAY @[ \
-    @{@"hmacAlgorithm" : @"HMAC_SHA1", @"kdfAlgorithm" : @"PBKDF2_HMAC_SHA1", @"pageSize" : @1024, @"kdfIteration" : @64000, @"cipherVersion" : @"3.0.0"}, \
-    @{@"hmacAlgorithm" : @"HMAC_SHA512", @"kdfAlgorithm" : @"PBKDF2_HMAC_SHA512", @"pageSize" : @4096, @"kdfIteration" : @256000, @"cipherVersion" : @"4.0.1"} \
-   ]
+#define CIPHER_ARRAY @[                                                                                                           \
+  @{ @"hmacAlgorithm" : @"HMAC_SHA1", @"kdfAlgorithm" : @"PBKDF2_HMAC_SHA1", @"pageSize" : @1024, @"kdfIteration" : @64000 },     \
+  @{ @"hmacAlgorithm" : @"HMAC_SHA512", @"kdfAlgorithm" : @"PBKDF2_HMAC_SHA512", @"pageSize" : @4096, @"kdfIteration" : @256000 } \
+]
 
 #import "AppceleratorEncrypteddatabaseDBProxy.h"
 #import "AppceleratorEncrypteddatabaseResultSetProxy.h"
@@ -49,7 +49,7 @@ BOOL isNewDatabase = NO;
 {
   WARN_IF_BACKGROUND_THREAD_OBJ; //NSNotificationCenter is not threadsafe!
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shutdown:) name:kTiShutdownNotification object:nil];
-  currentCipherParams = [NSMutableDictionary  dictionaryWithDictionary:[CIPHER_ARRAY lastObject]];
+  currentCipherParams = [NSMutableDictionary dictionaryWithDictionary:[CIPHER_ARRAY lastObject]];
   [super _configure];
 }
 
@@ -105,7 +105,7 @@ BOOL isNewDatabase = NO;
   BOOL versionExists = [fm fileExistsAtPath:versionFile];
   BOOL migrate = YES;
 
-  oldCipherParams =  [CIPHER_ARRAY lastObject]; // Default is latest cipher
+  oldCipherParams = [CIPHER_ARRAY lastObject]; // Default is latest cipher
 
   if (versionExists) {
     oldCipherParams = [CIPHER_ARRAY firstObject]; // For  older module with cipher 3
@@ -113,11 +113,11 @@ BOOL isNewDatabase = NO;
     if ([version isEqualToString:@"2.0.7"]) {
       //  2.0.7 uses sqlcipher version 4.0.1
       oldCipherParams = CIPHER_ARRAY[1];
-    } else if ([NSDictionary dictionaryWithContentsOfFile:versionFile]){
+    } else if ([NSDictionary dictionaryWithContentsOfFile:versionFile]) {
       oldCipherParams = [NSDictionary dictionaryWithContentsOfFile:versionFile];
     }
   }
-  
+
   if ([oldCipherParams isEqualToDictionary:currentCipherParams]) {
     migrate = NO;
   }
@@ -125,7 +125,7 @@ BOOL isNewDatabase = NO;
   if (migrate) {
     [currentCipherParams writeToFile:versionFile atomically:YES];
   }
-  
+
   if (isNewDatabase) {
     migrate = NO;
   }
@@ -425,30 +425,25 @@ BOOL isNewDatabase = NO;
 - (void)setKdfIterations:(NSNumber *)iteration andHmacAlgorithm:(NSNumber *)algorithm
 {
   if (iteration) {
-    if ([iteration integerValue] > 256000) {
-      iteration = @256000;
-    } else if ([iteration integerValue] < 4000) {
-      iteration = @4000;
-    }
     [currentCipherParams setValue:iteration forKey:@"kdfIteration"];
   }
-  
+
   if (algorithm) {
-      switch ([algorithm integerValue]) {
-      case 1:
-        [currentCipherParams setValue:@"HMAC_SHA1" forKey:@"hmacAlgorithm"];
-        [currentCipherParams setValue:@"PBKDF2_HMAC_SHA1" forKey:@"kdfAlgorithm"];
-        break;
-      case 2:
-        [currentCipherParams setValue:@"HMAC_SHA256" forKey:@"hmacAlgorithm"];
-        [currentCipherParams setValue:@"PBKDF2_HMAC_SHA256" forKey:@"kdfAlgorithm"];
-          break;
-      case 3:
-        [currentCipherParams setValue:@"HMAC_SHA512" forKey:@"hmacAlgorithm"];
-        [currentCipherParams setValue:@"PBKDF2_HMAC_SHA512" forKey:@"kdfAlgorithm"];
-          break;
-      default:
-        break;
+    switch ([algorithm integerValue]) {
+    case 1:
+      [currentCipherParams setValue:@"HMAC_SHA1" forKey:@"hmacAlgorithm"];
+      [currentCipherParams setValue:@"PBKDF2_HMAC_SHA1" forKey:@"kdfAlgorithm"];
+      break;
+    case 2:
+      [currentCipherParams setValue:@"HMAC_SHA256" forKey:@"hmacAlgorithm"];
+      [currentCipherParams setValue:@"PBKDF2_HMAC_SHA256" forKey:@"kdfAlgorithm"];
+      break;
+    case 3:
+      [currentCipherParams setValue:@"HMAC_SHA512" forKey:@"hmacAlgorithm"];
+      [currentCipherParams setValue:@"PBKDF2_HMAC_SHA512" forKey:@"kdfAlgorithm"];
+      break;
+    default:
+      break;
     }
   }
 }
