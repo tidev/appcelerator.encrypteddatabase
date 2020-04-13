@@ -4,6 +4,12 @@
  * Proprietary and Confidential - This source code is not for redistribution
  */
 
+// Add  parameter dictionary of major  release of cipher parameters
+#define CIPHER_ARRAY @[                                                                                                           \
+  @{ @"hmacAlgorithm" : @"HMAC_SHA1", @"kdfAlgorithm" : @"PBKDF2_HMAC_SHA1", @"pageSize" : @1024, @"kdfIteration" : @64000 },     \
+  @{ @"hmacAlgorithm" : @"HMAC_SHA512", @"kdfAlgorithm" : @"PBKDF2_HMAC_SHA512", @"pageSize" : @4096, @"kdfIteration" : @256000 } \
+]
+
 #import "AppceleratorEncrypteddatabaseDBProxy.h"
 #import "AppceleratorEncrypteddatabaseResultSetProxy.h"
 #import "TiFilesystemFileProxy.h"
@@ -43,6 +49,7 @@ BOOL isNewDatabase = NO;
 {
   WARN_IF_BACKGROUND_THREAD_OBJ; //NSNotificationCenter is not threadsafe!
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shutdown:) name:kTiShutdownNotification object:nil];
+  currentCipherParams = [NSMutableDictionary dictionaryWithDictionary:[CIPHER_ARRAY lastObject]];
   [super _configure];
 }
 
@@ -96,18 +103,29 @@ BOOL isNewDatabase = NO;
   NSFileManager *fm = [NSFileManager defaultManager];
   NSString *versionFile = [[dbPath stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"version"];
   BOOL versionExists = [fm fileExistsAtPath:versionFile];
-  NSString *currentVersion = @"2.0.7";
   BOOL migrate = YES;
 
+  oldCipherParams = [CIPHER_ARRAY lastObject]; // Default is latest cipher
+
   if (versionExists) {
+    oldCipherParams = [CIPHER_ARRAY firstObject]; // For  older module with cipher 3
     NSString *version = [NSString stringWithContentsOfFile:versionFile encoding:NSUTF8StringEncoding error:nil];
-    if ([version isEqualToString:currentVersion]) {
-      migrate = NO;
+    if ([version isEqualToString:@"2.0.7"]) {
+      //  2.0.7 uses sqlcipher version 4.0.1
+      oldCipherParams = CIPHER_ARRAY[1];
+    } else if ([NSDictionary dictionaryWithContentsOfFile:versionFile]) {
+      oldCipherParams = [NSDictionary dictionaryWithContentsOfFile:versionFile];
     }
   }
-  if (migrate) {
-    [fm createFileAtPath:versionFile contents:[currentVersion dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+
+  if ([oldCipherParams isEqualToDictionary:currentCipherParams]) {
+    migrate = NO;
   }
+
+  if (migrate) {
+    [currentCipherParams writeToFile:versionFile atomically:YES];
+  }
+
   if (isNewDatabase) {
     migrate = NO;
   }
@@ -214,6 +232,8 @@ BOOL isNewDatabase = NO;
   NSString *path = [self dbPath:name];
   if (![self needCipherMigrate:name]) {
     database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+    database.currentCipherParams = currentCipherParams;
+
     if (![database open]) {
       [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
       RELEASE_TO_NIL(database);
@@ -223,6 +243,8 @@ BOOL isNewDatabase = NO;
   //we need to migrate here
   NSString *tempPath = [self generateTempPath];
   database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password withTempPath:tempPath];
+  database.currentCipherParams = currentCipherParams;
+  database.oldCipherParams = oldCipherParams;
   if (![database openAndMigrate:nil]) {
     [self throwException:@"Couldn't open database and migrate" subreason:name_ location:CODELOCATION];
     RELEASE_TO_NIL(database);
@@ -235,6 +257,8 @@ BOOL isNewDatabase = NO;
   [self replaceOldCopy:path withNewCopy:tempPath];
   //now open the new database
   database = [[EncPLSqliteDatabase alloc] initWithPath:path andPassword:password];
+  database.currentCipherParams = currentCipherParams;
+
   if (![database open]) {
     [self throwException:@"Couldn't open database" subreason:name_ location:CODELOCATION];
     RELEASE_TO_NIL(database);
@@ -396,6 +420,32 @@ BOOL isNewDatabase = NO;
 - (EncPLSqliteDatabase *)database
 {
   return database;
+}
+
+- (void)setKdfIterations:(NSNumber *)iteration andHmacAlgorithm:(NSNumber *)algorithm
+{
+  if (iteration) {
+    [currentCipherParams setValue:iteration forKey:@"kdfIteration"];
+  }
+
+  if (algorithm) {
+    switch ([algorithm integerValue]) {
+    case 1:
+      [currentCipherParams setValue:@"HMAC_SHA1" forKey:@"hmacAlgorithm"];
+      [currentCipherParams setValue:@"PBKDF2_HMAC_SHA1" forKey:@"kdfAlgorithm"];
+      break;
+    case 2:
+      [currentCipherParams setValue:@"HMAC_SHA256" forKey:@"hmacAlgorithm"];
+      [currentCipherParams setValue:@"PBKDF2_HMAC_SHA256" forKey:@"kdfAlgorithm"];
+      break;
+    case 3:
+      [currentCipherParams setValue:@"HMAC_SHA512" forKey:@"hmacAlgorithm"];
+      [currentCipherParams setValue:@"PBKDF2_HMAC_SHA512" forKey:@"kdfAlgorithm"];
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 @end
