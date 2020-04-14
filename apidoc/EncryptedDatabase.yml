@@ -69,6 +69,59 @@ methods:
     since: "1.3.1"
 
 properties:
+  - name: HMAC_SHA1
+    summary: Assigned to [hmacAlgorithm](Modules.EncryptedDatabase.hmacAlgorithm) to hash with SHA1.
+    type: Number
+    permission: read-only
+    platforms: [android, iphone, ipad]
+    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+
+  - name: HMAC_SHA256
+    summary: Assigned to [hmacAlgorithm](Modules.EncryptedDatabase.hmacAlgorithm) to hash with SHA256.
+    type: Number
+    permission: read-only
+    platforms: [android, iphone, ipad]
+    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+
+  - name: HMAC_SHA512
+    summary: Assigned to [hmacAlgorithm](Modules.EncryptedDatabase.hmacAlgorithm) to hash with SHA512.
+    type: Number
+    permission: read-only
+    platforms: [android, iphone, ipad]
+    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+
+  - name: hmacAlgorithm
+    summary: The hashing algorithm the encrypted database will use.
+    description: |
+        This property must be assigned before calling the `open()` method for it to be applied to the database.
+
+        When opening an existing database that was using a different KDF value than what's currently assigned,
+        then it will be automatically migrated. How long the migration takes depends on the size of the database.
+    type: Number
+    default: Modules.EncryptedDatabase.HMAC_SHA512
+    constants: Modules.EncryptedDatabase.HMAC_*
+    platforms: [android, iphone, ipad]
+    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+
+  - name: hmacKdfIterations
+    summary: Number of iterations that the KDF (Key Derivation Function) will use for hashing.
+    description: |
+        Integer where the higher the value, the more secure the generated key will be at the cost of performance.
+        The minimum value allowed is `4000`.
+
+        Older versions of this module defaulted to `64000`, which made database operations faster
+        (but less secure) compared to the newest module versions. If you want to restore the older version's
+        performance, then use this property to change it back to `64000` iterations.
+
+        This property must be assigned before calling the `open()` method for it to be applied to the database.
+
+        When opening an existing database that was using a different KDF value than what's currently assigned,
+        then it will be automatically migrated. How long the migration takes depends on the size of the database.
+    type: Number
+    default: 256000
+    platforms: [android, iphone, ipad]
+    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+
   - name: password
     summary: The password used to encrypt sensitive data.
     type: String
@@ -123,7 +176,7 @@ examples:
             instance.execute('CREATE TABLE IF NOT EXISTS testtable(id integer PRIMARY KEY);');
             instance.execute('INSERT OR IGNORE INTO testtable(id) VALUES (1);');
         }
-        function insert(){
+        function insert() {
             var dataToInsertHandle = instance.execute('SELECT id FROM testtable ORDER BY id DESC LIMIT 1;');
             var dataToInsert = null;
             if(dataToInsertHandle.isValidRow()) {
