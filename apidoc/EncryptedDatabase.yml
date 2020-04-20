@@ -74,21 +74,21 @@ properties:
     type: Number
     permission: read-only
     platforms: [android, iphone, ipad]
-    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+    since: { android: "3.3.0", iphone: "2.1.0", ipad: "2.1.0" }
 
   - name: HMAC_SHA256
     summary: Assigned to [hmacAlgorithm](Modules.EncryptedDatabase.hmacAlgorithm) to hash with SHA256.
     type: Number
     permission: read-only
     platforms: [android, iphone, ipad]
-    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+    since: { android: "3.3.0", iphone: "2.1.0", ipad: "2.1.0" }
 
   - name: HMAC_SHA512
     summary: Assigned to [hmacAlgorithm](Modules.EncryptedDatabase.hmacAlgorithm) to hash with SHA512.
     type: Number
     permission: read-only
     platforms: [android, iphone, ipad]
-    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+    since: { android: "3.3.0", iphone: "2.1.0", ipad: "2.1.0" }
 
   - name: hmacAlgorithm
     summary: The hashing algorithm the encrypted database will use.
@@ -101,7 +101,7 @@ properties:
     default: Modules.EncryptedDatabase.HMAC_SHA512
     constants: Modules.EncryptedDatabase.HMAC_*
     platforms: [android, iphone, ipad]
-    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+    since: { android: "3.3.0", iphone: "2.1.0", ipad: "2.1.0" }
 
   - name: hmacKdfIterations
     summary: Number of iterations that the KDF (Key Derivation Function) will use for hashing.
@@ -120,7 +120,7 @@ properties:
     type: Number
     default: 256000
     platforms: [android, iphone, ipad]
-    since: { android: "4.1.0", iphone: "2.1.0", ipad: "2.1.0" }
+    since: { android: "3.3.0", iphone: "2.1.0", ipad: "2.1.0" }
 
   - name: password
     summary: The password used to encrypt sensitive data.
