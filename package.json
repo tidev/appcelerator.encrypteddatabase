@@ -1,6 +1,6 @@
 {
   "name": "@titanium-sdk/appcelerator.encrypteddatabase",
-  "version": "3.0.3",
+  "version": "3.3.0",
   "description": "Provides transparent, secure 256-bit AES encryption of SQLite database files.",
   "private": true,
   "scripts": {
@@ -28,28 +28,28 @@
   },
   "homepage": "https://github.com/appcelerator-modules/appcelerator.encrypteddatabase#readme",
   "devDependencies": {
-    "@commitlint/cli": "^8.2.0",
-    "@commitlint/config-conventional": "^8.2.0",
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
     "@seadub/clang-format-lint": "0.0.2",
     "@seadub/danger-plugin-dependencies": "^0.1.0",
     "@seadub/danger-plugin-junit": "^0.1.2",
-    "@seadub/danger-plugin-titanium-module": "0.0.4",
+    "@seadub/danger-plugin-titanium-module": "0.0.6",
     "clang-format": "^1.2.3",
     "commitizen": "^4.0.3",
-    "danger": "^7.1.0",
-    "eslint": "^5.10.0",
-    "eslint-config-axway": "^4.1.1",
+    "danger": "^9.2.10",
+    "eslint": "^6.8.0",
+    "eslint-config-axway": "^4.5.0",
     "eslint-plugin-jasmine": "^2.10.1",
-    "husky": "^3.0.9",
+    "husky": "^4.2.1",
     "jasmine-core": "^3.3.0",
     "karma": "^4.0.0",
     "karma-jasmine": "^2.0.1",
     "karma-junit-reporter": "^1.2.0",
     "karma-mocha-reporter": "^2.2.5",
     "karma-titanium-launcher": "^0.7.5",
-    "lint-staged": "^9.4.2",
-    "socket.io": "^2.2.0",
-    "titanium-docgen": "^0.2.0"
+    "lint-staged": "^10.0.7",
+    "socket.io": "^2.3.0",
+    "titanium-docgen": "^4.2.0"
   },
   "husky": {
     "hooks": {
@@ -59,12 +59,10 @@
   },
   "lint-staged": {
     "ios/Classes/*.{m,h}": [
-      "npx clang-format -style=file -i",
-      "git add"
+      "npx clang-format -style=file -i"
     ],
     "*.java": [
-      "npx clang-format -style=file -i",
-      "git add"
+      "npx clang-format -style=file -i"
     ],
     "*.js": "eslint"
   },

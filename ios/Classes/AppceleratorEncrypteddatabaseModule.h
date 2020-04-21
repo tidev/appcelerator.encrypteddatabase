@@ -16,6 +16,8 @@ typedef enum {
 } AppceleratorDatabaseFieldType;
 
 @interface AppceleratorEncrypteddatabaseModule : TiModule {
+  NSNumber *hmacAlgorithm;
+  NSNumber *kdfIterations;
 }
 
 @property (nonatomic, readwrite, retain) NSString *password;

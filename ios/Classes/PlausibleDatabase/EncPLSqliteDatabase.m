@@ -111,7 +111,8 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
     /* Release our backing path */
     [_path release];
     [_password release];
-
+    [_currentCipherParams release];
+    [_oldCipherParams release];
     [super dealloc];
 }
 
@@ -139,6 +140,7 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
  */
 - (BOOL) openAndReturnError: (NSError **) error {
     int err;
+    char *errMsg;
 
     /* Do not call open twice! */
     if (_sqlite != nil)
@@ -154,6 +156,10 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     
+    if (![self configWithDefaultaCipherParameter:error]) {
+      return NO;
+    }
+  
     /* Set a password */
     const char* key;
     if (_password == nil || [_password isEqualToString:@"DEFAULT"]) {
@@ -204,6 +210,10 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
         return NO;
     }
     
+    if (![self configWithDefaultaCipherParameter:error]) {
+      return NO;
+    }
+
     /* Set a password */
     const char* key;
     if (_password == nil || [_password isEqualToString:@"DEFAULT"]) {
@@ -228,45 +238,54 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
                 queryString: nil];
         return NO;
     }
+  
     char *errMsg;
 
     //prepare existing database for migration
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_page_size = 1024;" UTF8String], NULL, NULL, &errMsg);
-    if (err != SQLITE_OK) {
-        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
-        [self populateError: error
-              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
-                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
-                queryString: nil];
-        return NO;
-    }
-    err = sqlite3_exec(_sqlite, [@"PRAGMA kdf_iter = 64000;" UTF8String], NULL, NULL, &errMsg);
-    if (err != SQLITE_OK) {
-        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
-        [self populateError: error
-              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
-                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
-                queryString: nil];
-        return NO;
-    }
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_hmac_algorithm = HMAC_SHA1;" UTF8String], NULL, NULL, &errMsg);
-    if (err != SQLITE_OK) {
-        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
-        [self populateError: error
-              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
-                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
-                queryString: nil];
-        return NO;
-    }
-    err = sqlite3_exec(_sqlite, [@"PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA1;" UTF8String], NULL, NULL, &errMsg);
-    if (err != SQLITE_OK) {
-        NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
-        [self populateError: error
-              withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
-                description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
-                queryString: nil];
-        return NO;
-    }
+    NSString *query = [NSString stringWithFormat:@"PRAGMA cipher_page_size = %@", _oldCipherParams[@"pageSize"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                  queryString: nil];
+          return NO;
+      }
+    
+      query = [NSString stringWithFormat:@"PRAGMA kdf_iter = %@", _oldCipherParams[@"kdfIteration"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                  queryString: nil];
+          return NO;
+      }
+    
+      query = [NSString stringWithFormat:@"PRAGMA cipher_hmac_algorithm = %@", _oldCipherParams[@"hmacAlgorithm"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                  queryString: nil];
+          return NO;
+      }
+    
+      query = [NSString stringWithFormat:@"PRAGMA cipher_kdf_algorithm = %@", _oldCipherParams[@"kdfAlgorithm"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher migrate: failed to prepare database for migration.", @"")
+                  queryString: nil];
+          return NO;
+      }
+
     //attach new database
     err = sqlite3_exec(_sqlite, [[NSString stringWithFormat:@"ATTACH DATABASE '%s' AS newdb KEY '%s';",[_tempPath fileSystemRepresentation], key] UTF8String], NULL, NULL, &errMsg);
     if (err != SQLITE_OK) {
@@ -314,6 +333,47 @@ NSString *EncPLSqliteException = @"EncPLSqliteException";
 
     /* Success */
     return YES;
+}
+
+- (BOOL) configWithDefaultaCipherParameter: (NSError **) error
+{
+  int err;
+  char *errMsg;
+  if (_currentCipherParams) {
+     NSString *query = [NSString stringWithFormat:@"PRAGMA cipher_default_kdf_iter = %@", _currentCipherParams[@"kdfIteration"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher compatibility: failed to set cipher compatibility.", @"")
+                  queryString: nil];
+          return NO;
+      }
+    
+      query = [NSString stringWithFormat:@"PRAGMA cipher_default_hmac_algorithm = %@", _currentCipherParams[@"hmacAlgorithm"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher compatibility: failed to set cipher compatibility.", @"")
+                  queryString: nil];
+          return NO;
+      }
+    
+      query = [NSString stringWithFormat:@"PRAGMA cipher_default_kdf_algorithm = %@", _currentCipherParams[@"kdfAlgorithm"]];
+      err = sqlite3_exec(_sqlite, [query UTF8String], NULL, NULL, &errMsg);
+      if (err != SQLITE_OK) {
+          NSLog([@"[ERROR] " stringByAppendingString:[NSString stringWithCString:errMsg encoding:NSUTF8StringEncoding]]);
+          [self populateError: error
+                withErrorCode: EncPLDatabaseErrorCipherMigrateFailed
+                  description: NSLocalizedString(@"Cipher compatibility: failed to set cipher compatibility.", @"")
+                  queryString: nil];
+          return NO;
+      }
+  }
+  return YES;
 }
 
 /* from EncPLDatabase. */
