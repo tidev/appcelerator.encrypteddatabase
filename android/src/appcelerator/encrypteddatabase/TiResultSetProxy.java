@@ -5,18 +5,16 @@
  */
 package appcelerator.encrypteddatabase;
 
+import android.database.Cursor;
+import android.os.Build;
 import java.util.HashMap;
-
+import net.sqlcipher.CrossProcessCursorWrapper;
+import net.sqlcipher.SQLException;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.util.TiConvert;
-
-import android.database.Cursor;
-import net.sqlcipher.CrossProcessCursorWrapper;
-import net.sqlcipher.SQLException;
-import android.os.Build;
 
 @Kroll.proxy(parentModule = EncrypteddatabaseModule.class)
 public class TiResultSetProxy extends KrollProxy
