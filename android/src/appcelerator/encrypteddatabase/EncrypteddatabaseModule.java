@@ -5,6 +5,8 @@
  */
 package appcelerator.encrypteddatabase;
 
+import android.content.Context;
+import android.database.Cursor;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -15,7 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
+import net.sqlcipher.database.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteDatabaseHook;
 import org.appcelerator.kroll.KrollInvocation;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -24,12 +27,6 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.util.TiUrl;
-
-import android.content.Context;
-import android.database.Cursor;
-
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteDatabaseHook;
 
 @Kroll.module(name = "Encrypteddatabase", id = "appcelerator.encrypteddatabase")
 public class EncrypteddatabaseModule extends KrollModule

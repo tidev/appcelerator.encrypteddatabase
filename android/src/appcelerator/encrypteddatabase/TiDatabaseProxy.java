@@ -5,6 +5,11 @@
  */
 package appcelerator.encrypteddatabase;
 
+import android.content.Context;
+import android.database.Cursor;
+import net.sqlcipher.DatabaseUtils;
+import net.sqlcipher.SQLException;
+import net.sqlcipher.database.SQLiteDatabase;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -13,12 +18,6 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiFileProxy;
 import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.util.TiConvert;
-
-import android.content.Context;
-import android.database.Cursor;
-import net.sqlcipher.DatabaseUtils;
-import net.sqlcipher.SQLException;
-import net.sqlcipher.database.SQLiteDatabase;
 
 @Kroll.proxy(parentModule = EncrypteddatabaseModule.class)
 public class TiDatabaseProxy extends KrollProxy
