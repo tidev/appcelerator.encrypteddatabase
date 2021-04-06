@@ -1,4 +1,4 @@
-# Appcelerator Encrypted Database [![Build Status](https://magnum.travis-ci.com/appcelerator-modules/appcelerator.encrypteddatabase.svg?token=ph6xdReX6PW2XENunBEH&branch=master)](https://magnum.travis-ci.com/appcelerator-modules/appcelerator.encrypteddatabase)
+# Appcelerator Encrypted Database
 
 This is the Appcelerator Encrypted Database Module for Titanium.
 
