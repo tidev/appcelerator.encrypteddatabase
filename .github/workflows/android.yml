@@ -37,6 +37,11 @@ jobs:
           ${{ runner.OS }}-node-modules-
           ${{ runner.OS }}-
 
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+
     - run: npm ci
       name: Install dependencies
       if: steps.node-cache.outputs.cache-hit != 'true'
