@@ -129,6 +129,15 @@ properties:
     type: String
     since: "1.0.0"
 
+  - name: pageSize
+    summary: Setting the PRAGMA cipher_page_size value
+      description: |
+        Setting the PRAGMA cipher_page_size value. For more info look at
+        https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size
+    type: Number
+    platforms: [android]
+    since: { android: "5.0.0" }
+
 examples:
   - title: Open an encrypted database
     example: |

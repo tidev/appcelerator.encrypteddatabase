@@ -79,6 +79,14 @@ public class EncrypteddatabaseModule extends KrollModule
 	}
 
 	// clang-format off
+	@Kroll.setProperty
+	public void pageSize(int value)
+	// clang-format on
+	{
+		this.dbSettings.setPageSize(value);
+	}
+
+	// clang-format off
 	@Kroll.getProperty
 	@Kroll.method
 	public int getHmacAlgorithm()
