@@ -7,8 +7,9 @@ package appcelerator.encrypteddatabase;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
+
 import net.sqlcipher.DatabaseUtils;
-import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;

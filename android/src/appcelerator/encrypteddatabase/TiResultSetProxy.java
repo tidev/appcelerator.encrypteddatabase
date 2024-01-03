@@ -6,10 +6,10 @@
 package appcelerator.encrypteddatabase;
 
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Build;
 import java.util.HashMap;
 import net.sqlcipher.CrossProcessCursorWrapper;
-import net.sqlcipher.SQLException;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
