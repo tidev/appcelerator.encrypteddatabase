@@ -5,7 +5,7 @@ description: |
     This module exposes the same API as Titanium.Database, but it encrypts all content (even the schema) using
     a password you specify.
 
-    <p class="note">Note: This feature requires a Pro or Enterprise subscription. More info <a href="https://www.appcelerator.com/pricing/" target="_blank">here</a>!</p>
+    You can download the module at [appcelerator.encrypteddatabase](https://github.com/tidev/appcelerator.encrypteddatabase/releases)
 
     ### Getting Started
 
@@ -128,6 +128,15 @@ properties:
     summary: The password used to encrypt sensitive data.
     type: String
     since: "1.0.0"
+
+  - name: pageSize
+    summary: Setting the PRAGMA cipher_page_size value
+    description: |
+        Setting the PRAGMA cipher_page_size value. For more info look at
+        https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size
+    type: Number
+    platforms: [android]
+    since: { android: "5.0.0" }
 
 examples:
   - title: Open an encrypted database
