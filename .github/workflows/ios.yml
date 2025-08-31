@@ -15,7 +15,7 @@ jobs:
     runs-on: macos-latest
     name: iOS
     env:
-      SDK_VERSION: 12.2.1.GA
+      SDK_VERSION: 12.8.0.GA
       MODULE_ID: appcelerator.encrypteddatabase
     steps:
     - uses: actions/checkout@v5
