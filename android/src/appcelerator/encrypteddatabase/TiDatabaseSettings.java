@@ -6,8 +6,9 @@
 package appcelerator.encrypteddatabase;
 
 import java.util.Properties;
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteDatabaseHook;
+import net.zetetic.database.sqlcipher.SQLiteConnection;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteDatabaseHook;
 
 /**
  * Stores database settings such as hashing alogorithm, KDF iterations, and SQLite page size.
@@ -183,14 +184,13 @@ public class TiDatabaseSettings
 	{
 		return new SQLiteDatabaseHook() {
 			@Override
-			public void preKey(SQLiteDatabase database)
+			public void preKey(SQLiteConnection connection)
 			{
 			}
 
 			@Override
-			public void postKey(SQLiteDatabase database)
+			public void postKey(SQLiteConnection connection)
 			{
-				applyTo(database);
 			}
 		};
 	}

@@ -1,4 +1,4 @@
 dependencies {
-	implementation 'net.zetetic:android-database-sqlcipher:4.5.4'
+	implementation 'net.zetetic:sqlcipher-android:4.7.2'
 	implementation "androidx.sqlite:sqlite:2.2.0"
 }
