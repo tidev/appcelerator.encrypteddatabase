@@ -17,8 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteDatabaseHook;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteDatabaseHook;
 import org.appcelerator.kroll.KrollInvocation;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -57,7 +57,7 @@ public class EncrypteddatabaseModule extends KrollModule
 	public EncrypteddatabaseModule()
 	{
 		super();
-		SQLiteDatabase.loadLibs(TiApplication.getAppCurrentActivity());
+		System.loadLibrary("sqlcipher");
 	}
 
 	// clang-format off
@@ -76,6 +76,14 @@ public class EncrypteddatabaseModule extends KrollModule
 	// clang-format on
 	{
 		this.password = value;
+	}
+
+	// clang-format off
+	@Kroll.setProperty
+	public void pageSize(int value)
+	// clang-format on
+	{
+		this.dbSettings.setPageSize(value);
 	}
 
 	// clang-format off
@@ -256,7 +264,7 @@ public class EncrypteddatabaseModule extends KrollModule
 			if (database == null) {
 				dbOldSettings = null;
 				if (isUnencryptedDatabase(dbFile)) {
-					database = SQLiteDatabase.openOrCreateDatabase(dbFile, "", null);
+					database = SQLiteDatabase.openOrCreateDatabase(dbFile, "", null, null, null);
 				}
 			}
 
@@ -325,7 +333,7 @@ public class EncrypteddatabaseModule extends KrollModule
 		// Create database or re-open migrated database.
 		// Also write its encryption settings to properties file so that we'll know how to re-open it later.
 		if (database == null) {
-			database = SQLiteDatabase.openOrCreateDatabase(dbFile, dbPassword, null, dbSettings.toDatabaseHook());
+			database = SQLiteDatabase.openOrCreateDatabase(dbFile, dbPassword, null, null, dbSettings.toDatabaseHook());
 			if (database != null) {
 				try (FileOutputStream stream = new FileOutputStream(propertiesFile)) {
 					dbSettings.toProperties().store(stream, "");
@@ -362,7 +370,7 @@ public class EncrypteddatabaseModule extends KrollModule
 		try {
 			// Create or open the database using encryption settings provided by dbPassword and dbHook.
 			// Note: The only way to know if encryption settings are correct is to attempt to read a row.
-			database = SQLiteDatabase.openOrCreateDatabase(dbFile, dbPassword, null, dbHook);
+			database = SQLiteDatabase.openOrCreateDatabase(dbFile, dbPassword, null, null, dbHook);
 			if (database != null) {
 				try (Cursor cursor = database.rawQuery("PRAGMA user_version;", new String[] {})) {
 					isValidDatabase = (cursor != null);

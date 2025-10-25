@@ -6,10 +6,10 @@
 package appcelerator.encrypteddatabase;
 
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Build;
 import java.util.HashMap;
-import net.sqlcipher.CrossProcessCursorWrapper;
-import net.sqlcipher.SQLException;
+import net.zetetic.database.sqlcipher.SQLiteCursor;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -100,8 +100,8 @@ public class TiResultSetProxy extends KrollProxy
 		boolean fromString = false;
 
 		try {
-			if (rs instanceof CrossProcessCursorWrapper) {
-				final CrossProcessCursorWrapper cursor = (CrossProcessCursorWrapper) rs;
+			if (rs instanceof SQLiteCursor) {
+				final SQLiteCursor cursor = (SQLiteCursor) rs;
 				final int cursorType = cursor.getType(index);
 
 				switch (cursorType) {
