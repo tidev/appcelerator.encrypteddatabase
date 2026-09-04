@@ -32,7 +32,7 @@ public class TiResultSetProxy extends KrollProxy
 		super();
 
 		this.rs = rs;
-		String[] names = rs.getColumnNames();
+		String[] names = (rs != null) ? rs.getColumnNames() : new String[0];
 		this.columnNames = new HashMap<String, Integer>(names.length);
 		for (int i = 0; i < names.length; i++) {
 			columnNames.put(names[i].toLowerCase(), i);
