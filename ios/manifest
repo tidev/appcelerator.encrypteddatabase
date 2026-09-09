@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 4.0.1
+version: 4.0.0
 apiversion: 2
 architectures: arm64 x86_64
 description: Provides transparent, secure 256-bit AES encryption of SQLite database files.
@@ -16,5 +16,5 @@ name: encrypteddatabase
 moduleid: appcelerator.encrypteddatabase
 guid: d1b3740c-ec53-45c6-8454-8748f91da6ad
 platform: iphone
-minsdk: 9.2.0
+minsdk: 13.4.0
 mac: false
