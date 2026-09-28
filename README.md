@@ -13,7 +13,7 @@ For iOS you have to build SQLCipher by hand first:
 $ cd ~/Documents/code
 $ git clone https://github.com/sqlcipher/sqlcipher.git
 $ cd sqlcipher
-$ ./configure --with-crypto-lib=none
+$ ./configure --with-tempstore=yes
 $ make sqlite3.c
 ```
 (source https://www.zetetic.net/sqlcipher/ios-tutorial/#option-1-source-integration)
