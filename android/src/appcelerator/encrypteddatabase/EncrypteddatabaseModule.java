@@ -79,8 +79,18 @@ public class EncrypteddatabaseModule extends KrollModule
 	}
 
 	// clang-format off
+	@Kroll.getProperty
+	@Kroll.method
+	public int getPageSize()
+	// clang-format on
+	{
+		return this.dbSettings.getPageSize();
+	}
+
+	// clang-format off
 	@Kroll.setProperty
-	public void pageSize(int value)
+	@Kroll.method
+	public void setPageSize(int value)
 	// clang-format on
 	{
 		this.dbSettings.setPageSize(value);
@@ -168,6 +178,7 @@ public class EncrypteddatabaseModule extends KrollModule
 			// open an empty one to get the full path and then close and delete
 			// it
 			File dbPath = ctx.getDatabasePath(name);
+			dbPath.getParentFile().mkdirs();
 
 			Log.d(TAG, "db path is = " + dbPath, Log.DEBUG_MODE);
 			Log.d(TAG, "db url is = " + url, Log.DEBUG_MODE);

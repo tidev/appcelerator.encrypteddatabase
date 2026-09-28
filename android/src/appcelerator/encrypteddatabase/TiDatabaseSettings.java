@@ -191,8 +191,26 @@ public class TiDatabaseSettings
 			@Override
 			public void postKey(SQLiteConnection connection)
 			{
+				applyTo(connection);
 			}
 		};
+	}
+
+	/**
+	 * Applies this object's settings to the given connection via SQL PRAGMA statements.
+	 * <p>
+	 * Intended to be called from a SQLiteDatabaseHook's postKey() method, which is invoked by the SQLCipher
+	 * library right after "PRAGMA key" has been issued and before the connection is used.
+	 * @param connection The connection this object's settings will be applied to. If null, does nothing.
+	 */
+	public void applyTo(SQLiteConnection connection)
+	{
+		if (connection == null) {
+			return;
+		}
+		for (String statement : toPragmaStatements("")) {
+			connection.execute(statement, null, null);
+		}
 	}
 
 	/**
@@ -236,12 +254,26 @@ public class TiDatabaseSettings
 		}
 
 		// Apply this object's encryption settings to the given database.
+		for (String statement : toPragmaStatements(dbName)) {
+			database.rawExecSQL(statement);
+		}
+	}
+
+	/**
+	 * Builds the SQL PRAGMA statements needed to apply this object's encryption settings.
+	 * @param dbPrefix Attached database name including trailing ".", or empty string for the main database.
+	 * @return Returns an array of PRAGMA statements to be executed in order.
+	 */
+	private String[] toPragmaStatements(String dbPrefix)
+	{
 		String hmacAlgorithmStringId = this.hashAlgorithmType.toCipherHmacStringId();
 		String kdfAlgorithmStringId = this.hashAlgorithmType.toCipherKdfStringId();
-		database.rawExecSQL("PRAGMA " + dbName + "cipher_page_size = " + this.pageSize + ";");
-		database.rawExecSQL("PRAGMA " + dbName + "kdf_iter = " + this.kdfIterations + ";");
-		database.rawExecSQL("PRAGMA " + dbName + "cipher_hmac_algorithm = " + hmacAlgorithmStringId + ";");
-		database.rawExecSQL("PRAGMA " + dbName + "cipher_kdf_algorithm = " + kdfAlgorithmStringId + ";");
+		return new String[] {
+			"PRAGMA " + dbPrefix + "cipher_page_size = " + this.pageSize + ";",
+			"PRAGMA " + dbPrefix + "kdf_iter = " + this.kdfIterations + ";",
+			"PRAGMA " + dbPrefix + "cipher_hmac_algorithm = " + hmacAlgorithmStringId + ";",
+			"PRAGMA " + dbPrefix + "cipher_kdf_algorithm = " + kdfAlgorithmStringId + ";",
+		};
 	}
 
 	/**
